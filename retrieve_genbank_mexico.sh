@@ -1,3 +1,4 @@
+##30-04-2018
 ##Entrez Direct (EDirect) installation.
 ##Instalación de Entrez Direct de acuerdo al manual tomado de https://www.ncbi.nlm.nih.gov/books/NBK25501/pdf/Bookshelf_NBK25501.pdf el 29 de abril de 2018
  cd ~
