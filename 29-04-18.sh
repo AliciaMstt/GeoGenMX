@@ -35,5 +35,5 @@ echo "export PATH=\${PATH}:/home/lmalpica/edirect" >> $HOME/.bash_profile
 #Como en algunos casos Mexico aparece en campos diferentes se volverá a checar, al estandarizar el formato de las columnas, que el país efectivamente sea México.
 
 
-esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" > genbank_mexico
+esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" > genbank_mexico.out
 
