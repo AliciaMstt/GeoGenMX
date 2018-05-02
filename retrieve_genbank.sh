@@ -1,4 +1,3 @@
-##30-04-2018
 ##Entrez Direct (EDirect) installation.
 ##Instalación de Entrez Direct de acuerdo al manual tomado de https://www.ncbi.nlm.nih.gov/books/NBK25501/pdf/Bookshelf_NBK25501.pdf el 29 de abril de 2018
  cd ~
@@ -33,8 +32,19 @@ echo "export PATH=\${PATH}:/home/lmalpica/edirect" >> $HOME/.bash_profile
 #Biomol MolType    Dicen el tipo de secuencia del que se trata (rna, dna, etc.) y de donde viene (mitocondria, genoma, etc.)
 #Ya teniendo estos campos se filtró a conservar solamente los registros que tengan incluido el campo "country"
 #Se vio que algunos de estos resultados tenían como valor en "country" otros paises entonces se filtró a que apareciera Mexico en el resultado
-#Como en algunos casos Mexico aparece en campos diferentes se volverá a checar, al estandarizar el formato de las columnas, que el país efectivamente sea México.
+#Como en algunos casos Mexico aparece en campos diferentes se volverá a checar, al estandarizar el formato de las columnas, que el país efectivamente sea México, despues se filtro para excluir todo lo que tuviera como region New Mexico
 
 
-esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" > genbank_mexico.out
+
+##se tardo aproximadamente 1 hora en mi computadora y se recuperaron 398740 registros
+
+esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" | grep  -v "USA:New Mexico"  > genbank_mexico.out
+
+
+esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" | grep  -v "USA:New Mexico" | grep "" -c
+cat genbank_mexico.out | grep "" -c
+
+
+##De lo que pude notar al echarle un vistazo a los resultados, sigue habiendo mucho por depurar ya que las especies mas estudiadas dan muchas secuencias diferentes y aunque se excluyeron bacterias, virus, arqueas y protistas, me parece que algunas secuencias de estudios metagenómicos o de parásitos se colaron en los resultados, por ejemplo secuencias que tienen en el nombre del organismo "uncultured diatom clone", o resultados que en la anotación tienen una sección que indica el host. Me imagino que estos corresponden a hongos ver que filtros puedo aplicarles para quitar estos resultados. 
+
 
