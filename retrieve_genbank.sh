@@ -36,7 +36,7 @@ echo "export PATH=\${PATH}:/home/lmalpica/edirect" >> $HOME/.bash_profile
 
 
 
-##se tardo aproximadamente 1 hora en mi computadora y se recuperaron 398740 registros
+##se tardo aproximadamente 1 hora en mi computadora y se recuperaron 398835 registros
 
 esearch -db nucleotide -query "Mexico NOT(homo sapiens [ORGN] OR Viruses [ORGN] OR Bacteria [ORGN] or Archaea [ORGN] OR Protists [ORGN])" | efetch -format docsum  | xtract -pattern DocumentSummary -element AccessionVersion Id Organism SubType SubName Biomol MolType | grep "country" | grep "Mexico" | grep  -v "USA:New Mexico"  > genbank_mexico.out
 
