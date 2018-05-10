@@ -1,4 +1,4 @@
-esearch -db nucleotide -query "/country=Mexico NOT(homo sapiens [ORGN] OR viruses [ORGN] OR bacteria [ORGN] or archaea [ORGN] OR protist [ORGN])"
+#esearch -db nucleotide -query "/country=Mexico NOT(homo sapiens [ORGN] OR viruses [ORGN] OR bacteria [ORGN] or archaea [ORGN] OR protist [ORGN])"
 
 
 #output
@@ -11,32 +11,20 @@ esearch -db nucleotide -query "/country=Mexico NOT(homo sapiens [ORGN] OR viruse
 #</ENTREZ_DIRECT>
 
 
-#El formato gb (genbank) en modo xml organiza el archivo genbank en bloques definidos con xtract vas escogiendo los bloques y se acomodan en forma tabular 
-#-pattern: escoge los bloques que representarán cada fila y de donde se seleccionara cada elemento para las columnas. En este caso cada resultado esta delimitado en un bloque de GBSeq 
-#-element sirve para enumerar los elementos de cada resultado (fila o bloque seleccionado con -pattern) para cada columna se seleccionó:
-#GBSeq_primary-accession = identificador único de la secuencia 
-#GBSeq_primary-accession-version= identificador único de la secuencia con su versión, si se hace algún cambio a la secuencia el identificador, accession se mantiene igual pero se incrementa el número de versión
-#GBSeq_locus= Nombre del locus
-#GBSeq_length = longitud de la secuencia
-#GBSeq_moltype = tipo de seuencia (DNA, RNA, etc)
-#GBSeq_sequence = la secuencia 
-#GBSeq_source =organismo del que se obtuvo la secuencia, puede incluir el nombre común del organismo
-#GBSeq_organism =organismo del que se obtuvo la secuencia (nombre científico)
-#GBSeq_taxonomy = descripción taxonómica del organismo
-#Los qualifiers, que contienen más información de la anotación del gen están en el bloque GBQualifier y cada uno está formado por el nombre, delimitado por GBQualifier_name y por el valor, delimitado por GBQualifier_value
-#Para obtenerlos se usa el formato : 
-# -block GBQualifier -if GBQualifier_name -equals nombre_qualifier -element GBQualifier_value 
-#Ejemplo de un solo registro:
-esearch -db nucleotide -query "MF993434.1" |efetch -format gb -mode xml | xtract -pattern GBSeq -element GBSeq_primary-accession GBSeq_accession-version GBSeq_locus GBSeq_length GBSeq_moltype GBSeq_sequence GBSeq_source GBSeq_organism GBSeq_taxonomy -block GBQualifier -if GBQualifier_name -equals country -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals lat_lon -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals altitude -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals mol_type -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals product -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals db_xref -element GBQualifier_value 
-
-
-
-#output
-#MF993434	MF993434.1	MF993434	554	DNA	tcgtaacaaggtttccgtaggtgaacctgcggaaggatcattacctagagtttgtggacttcggtctgctacctcttacccatgtcttttgagtaccttcgtttcctcggcgggtccgcccgccggttggacaacattcaaaccctttgcagttgcaatcagcgtctgaaaaaacttaatagttacaactttcaacaacggatctcttggttctggcatcgatgaagaacgcagcgaaatgcgataagtagtgtgaattgcagaattcagtgaatcatcgaatctttgaacgcacattgcgccccttggtattccatggggcatgcctgttcgagcgtcatttgtaccttcaagctctgcttggtgttgggtgttttgtctcgcctccgcgcgcagactcgccttaaaacaattggcagccggcgtattgatttcggagcgcagtacatctcgcgctttgcactcataacgacgacgtccaaaagtacatttttacactcttgacctcggatcaggtagggatacccgctgaacttaagcatatcaataagcgg	Epicoccum nigrum	Epicoccum nigrum	Eukaryota; Fungi; Dikarya; Ascomycota; Pezizomycotina; Dothideomycetes; Pleosporomycetidae; Pleosporales; Pleosporineae; Didymellaceae; Epicoccum	Mexico: Michoacan, Los Reyes de Salgado19.61 N 102.48 W	1282 m	genomic DNA	18S ribosomal RNA	internal transcribed spacer 1	5.8S ribosomal RNA	internal transcribed spacer 2	28S ribosomal RNA	taxon:105696
-
 
 
 
 
 #Obtener todos los de México, quitando homo sapiens, virus, bacteria, archaea y protistas.
-esearch -db nucleotide -query "/country=Mexico NOT(homo sapiens [ORGN] OR viruses [ORGN] OR bacteria [ORGN] or archaea [ORGN] OR protist [ORGN])" |efetch -format gb -mode xml | xtract -pattern GBSeq -element GBSeq_primary-accession GBSeq_accession-version GBSeq_locus GBSeq_length GBSeq_moltype GBSeq_sequence GBSeq_source GBSeq_organism GBSeq_taxonomy -block GBQualifier -if GBQualifier_name -equals country -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals lat_lon -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals altitude -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals mol_type -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals product -element GBQualifier_value -block GBQualifier -if GBQualifier_name -equals db_xref -element GBQualifier_value > mexico_genbank_filteredspecies.tsv
+#El formato gbc te da un formato parecido al de xml pero más fácil de procesar puedes acceder a las propiedades que quieres con el tag que les corresponde (INSDSeq_primary-accession, INSDSeq_locus, etc.)  y también te puedes ir a una región específica que contenga los qualifiers que te interesen, en este caso te vas a source y obtienes la anotación que te interesa en cuanto al organismo, el tipo de molécula, país, latitud y longitud, altitud y el identificador taxonómico.
+#INSDXref_id doi de la publicacion 
+#INSDReference_pubmed id de pubmed
+#INSDReference_title titulo del articulo 
+#INSDReference_journal journal de publicación del artículo
+#INSDAuthor autores del artículo (separados por tabs)
+
+esearch -db nucleotide -query "/country=Mexico NOT(homo sapiens [ORGN] OR viruses [ORGN] OR bacteria [ORGN] or archaea [ORGN] OR protist [ORGN])" |efetch -format gbc | xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy INSDXref_id INSDReference_pubmed INSDReference_title INSDAuthor INSDReference_journal source organism mol_type country lat_lon altitude db_xref> genbank_mexico_filtered.tsv
+
+
+esearch -db nucleotide -query "/country=Mexico" |efetch -format gbc |  xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy INSDXref_id INSDReference_pubmed INSDReference_title INSDAuthor INSDReference_journal source organism mol_type country lat_lon altitude db_xref > genbank_mexico_all.tsv
+
