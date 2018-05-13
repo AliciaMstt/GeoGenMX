@@ -8,8 +8,9 @@
 #genbank_mexico_all.tsv
 #genbank_mexico_filtered.tsv
 
-sed 's/,/;/g' bold_data.tsv > bold_data1.tsv
-sed 's/\t/,/g' bold_data1.tsv > bold_data.csv
+sed 's/,/;/g' genbank_mexico_filtered.tsv > genbank_filtered0.tsv
+sed 's/\t/,/g' genbank_filtered0.tsv > genbank_filtered1.csv
+sed 's/-//g' genbank_filtered1.csv > genbank_filtered.csv
 
 
 
@@ -21,9 +22,11 @@ cat bold_data.tsv | awk -F "\t" '{print $10}' | sort | uniq > bold_phylum.txt
 ]
 
 
-#Ejemplo sacar reino de un solo phylum
-efetch -db taxonomy -id 7711 -format xml | xtract -pattern Taxon -block "*/Taxon" -if Rank -equals kingdom -element ScientificName
+#Quitar de la lista los identificadores de otras bases de datos (e.g. BOLD) 
+cat tax_genbank | grep -P "^[[:digit:]]"  > tax_genbank1
 
-#sacar los reinos para los demas phylum
-efetch -db taxonomy -id 10190,10232,120557,1224,1264859,13809,1760,183924,20117414504,27563,2763,2836,287987,28889,29178,29197,3041,3195,3208,3398,35493,451507,451827,451828,4890,5204,58020,5878,6040,6073,6157,6231,6340,6447,6656,7586,7711 -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element ScientificName > phylumid_kingdom.tsv
+
+#Poner los taxon de genebank en una linea con comas *aclarar bien como hace el reemplazo de newline
+cat tax_genbank1 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank.txt
+
 
