@@ -2,6 +2,8 @@ setwd( "/home/lmalpica/Desktop/CONABIO")
 library(readr)
 library(dplyr)
 library(tidyr)
+
+#Esto se corre 1 sola vez para limpiar los datos y generar un csv con los datos corregidos 
 bold_data <- read_delim("~/Desktop/CONABIO/bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 bold_data<-as.data.frame(bold_data)
 
@@ -61,6 +63,9 @@ phylumid_kingdom[45,]<-c(NA, "Zygomycota", "Fungi")
 #get positions of matching phylum 
 matched_phylum<-match(bold_data$phylum_name, phylumid_kingdom$phylum_name)
 bold_data$kingdom<-phylumid_kingdom$kingdom[matched_phylum]
+
+#Termina lo que se corre una sola vez para limpiar los datos 
+#
 
 #Sacar lista de secuencias por especie:
 species_seqs<-as.data.frame(table(as.factor(bold_data$species_name)))
