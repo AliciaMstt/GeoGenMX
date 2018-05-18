@@ -1,0 +1,37 @@
+---
+title: "Retrieve and clean genbank data"
+author: "Lorena Malpica"
+date: "18 de mayo de 2018"
+output: html_document
+---
+
+Para descargar las secuencias de genbank se usó la herramienta de NCBI entrez utilities. 
+
+Por el momento se está trabajando con datos que excluyen homo sapiens, virus, bacteria, archaea y protista. Está en proceso descargar el dataset sin excluir a ningún grupo de organismos. Adicionalmente los datos actuales tienen en el campo país únicamente matches exactos con la frase "México", es decir se excluyó todo lo que tenga información adicional del estado o región. Esto ya se corrigió y esta en proceso la descarga. 
+
+```
+esearch -db nucleotide -query '/country="Mexico" NOT(homo sapiens [ORGN] OR viruses [ORGN] OR bacteria [ORGN] OR archaea [ORGN] OR protist [ORGN]) NOT(/country="New Mexico")'  |efetch -format gbc | xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy source organism mol_type country lat_lon altitude db_xref> genbank_filtered.tsv
+
+esearch -db nucleotide -query '/country="Mexico" NOT(/country="New Mexico")'  |efetch -format gbc | xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy source organism mol_type country lat_lon altitude db_xref> genbank_all.tsv
+```
+
+Teniendo eso al importar los datos directo a R había discrepancias en el número de columnas, para arreglar esto ocupamos bash one-liners que se pueden ver en el archivo fileprocessing.sh
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
