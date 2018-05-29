@@ -15,7 +15,272 @@ esearch -db nucleotide -query '/country="Mexico" NOT(homo sapiens [ORGN] OR viru
 esearch -db nucleotide -query '/country="Mexico" NOT(/country="New Mexico")'  |efetch -format gbc | xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy source organism mol_type country lat_lon altitude db_xref> genbank_all.tsv
 ```
 
-Teniendo eso al importar los datos directo a R había discrepancias en el número de columnas, para arreglar esto ocupamos bash one-liners que se pueden ver en el archivo fileprocessing.sh
+Teniendo eso al importar los datos directo a R había discrepancias en el número de columnas, para arreglar esto ocupamos bash one-liners que se pueden ver en el archivo fileprocessing.sh. Deben de ser 15 columnas:
+
+1) Accesión con versión
+2)Accesión
+3)Locus
+4)Longitud de la secuencia 
+5)Tipo de molécula
+6) Secuencia
+7) Definición
+8)Organismo
+9)Información taxonómica
+10)organismo
+11)Tipo de molécula 
+12)País 
+13)Latitud y longitud 
+14) Altitud 
+15) taxonomy id
+
+En algunos casos hay una columna extra con el id de de bold, ésta columna se conservó.
+
+
+```
+cat genbank_filtered18-05.tsv | awk -F "\t" '{print NF}' | sort | uniq
+```
+
+Salieron:
+
+14
+15
+16
+
+Separar las filas por numero de campos:
+
+```
+cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==14) print $0 }' > genbank_filtered14.tsv 
+cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==15) print $0 }' > genbank_filtered15.tsv
+cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==16) print $0 }' > genbank_filtered16.tsv 
+
+```
+
+Arreglamos el de 14 columnas:
+```{r, echo=FALSE}
+library(readr)
+gb_14 <- read_delim("~/Desktop/CONABIO/genbank_filtered14.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+gb_14_1<-gb_14[,1:5]
+gb_14_1$sequence<-NA
+gb_1<-cbind(gb_14_1, gb_14[,6:14])
+gb_1$bold_ids<-NA
+gb_1_ids<-gb_1$bold_ids
+gb_1_boldids<-as.data.frame(gb_1_ids)
+gb_1<-gb_1[,-16]
+```
+
+Arreglamos el de 16 columnas:
+```{r, echo=FALSE}
+gb_16 <- read_delim("~/Desktop/CONABIO/genbank_filtered16.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+bold_ids<-gb_16[,15]
+gb_2<-gb_16[,-15]
+```
+
+```{r, echo=FALSE}
+gb_15 <- read_delim("~/Desktop/CONABIO/genbank_filtered15.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+gb_15$bold_ids<-NA
+gb_15_ids<-gb_15$bold_ids
+gb_15_boldids<-as.data.frame(gb_15_ids)
+gb_15<-gb_15[,-16]
+```
+
+```{r, echo=FALSE}
+colnames(gb_1)<-c("accession_version",
+"accession",
+"locus",
+"seq_len",
+"mol_type",
+"sequence",
+"definition",
+"organism",
+"taxonomy",
+"source_organism",
+"molecule_origin",
+"country",
+"lat-lon",
+"altitude",
+"tax_id"
+)
+
+
+colnames(gb_2)<-c("accession_version",
+"accession",
+"locus",
+"seq_len",
+"mol_type",
+"sequence",
+"definition",
+"organism",
+"taxonomy",
+"source_organism",
+"molecule_origin",
+"country",
+"lat-lon",
+"altitude",
+"tax_id"
+)
+
+colnames(gb_15)<-c("accession_version",
+"accession",
+"locus",
+"seq_len",
+"mol_type",
+"sequence",
+"definition",
+"organism",
+"taxonomy",
+"source_organism",
+"molecule_origin",
+"country",
+"lat-lon",
+"altitude",
+"tax_id"
+)
+
+gb<-rbind(gb_1,gb_2,gb_15)
+
+colnames(gb_1_boldids)<-"bold_id"
+colnames(gb_15_boldids)<-"bold_id"
+colnames(bold_ids)<-"bold_id"
+
+bold_id<-rbind(gb_1_boldids, bold_ids, gb_15_boldids)
+
+
+gb<-cbind(gb, bold_id)
+write_csv(gb, "genbank_1805.csv")
+```
+
+
+
+Caso 
+2175846	687269	Colletotrichum cliviicola	kingdom	Fungi	phylum	Ascomycota	class	Sordariomycetes	order	Glomerellales	family	Glomerellaceae	genus	Colletotrichum
+Deje el id 2175846 porque con el otro aparecen 2 ids en vez de 1 , lo corregi  el archivo genbank1805.csv
+Lo mismo paso con: 
+1659837	45150	Exserohilum rostratum	kingdom	Fungi	phylum	Ascomycota	class	Dothideomycetes	order	Pleosporales	family	Pleosporaceae	genus	Exserohilum
+
+```
+ sed 's/taxon:687269/taxon:2175846/g' genbank_1805.csv > genbank_18051.csv
+ sed 's/taxon:45150/taxon:1659837/g' genbank_18051.csv > genbank1805.csv
+
+```
+
+A partir de ahora se trabaja solo con el csv generado
+
+```{r, echo=FALSE}
+library(readr)
+genbank1805 <- read_csv("~/Desktop/CONABIO/genbank1805.csv")
+```
+
+Obtener información taxonómica:
+
+```{r, echo=FALSE}
+tax_list<-genbank_1805$tax_id
+tax_list<-gsub("taxon:", "", tax_list)
+tax_list<-unique(tax_list)
+write_delim(as.data.frame(tax_list), "./tax_genbank", delim=",")
+```
+
+
+Se quitan los ids que no empiezan con un dígito ya que estos no son de genebank, y se arregla el formato a que estén en 1 línea y separados por comas.
+```
+cat tax_genbank | grep -P "^[[:digit:]]"  > tax_genbank1
+cat tax_genbank1 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank.txt
+
+```
+Se obtienen la info taxonómica para todas las especies, la siguiente línea es un ejemplo de la especie con el id  2175846, en el archivo retrieve_infotax_genebankall.sh se copiaron los ids generados en el paso anterior.
+```
+efetch -db taxonomy -id -2175846 -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element Rank -block "*/Taxon" -if Rank -equals kingdom -element ScientificName -block "*/Taxon" -if Rank -equals phylum -element Rank -block "*/Taxon" -if Rank -equals phylum -element ScientificName -block "*/Taxon" -if Rank -equals class -element Rank -block "*/Taxon" -if Rank -equals class -element ScientificName -block "*/Taxon" -if Rank -equals order -element Rank -block "*/Taxon" -if Rank -equals order -element ScientificName -block "*/Taxon" -if Rank -equals family -element Rank  -block "*/Taxon" -if Rank -equals family -element ScientificName -block "*/Taxon" -if Rank -equals subfamily -element Rank -block "*/Taxon" -if Rank -equals subfamily -element ScientificName -block "*/Taxon" -if Rank -equals genus -element Rank -block "*/Taxon" -if Rank -equals genus -element ScientificName
+```
+```
+bash retrieve_infotax_genebankall.sh
+```
+
+
+
+Corregir columnas desfasadas:
+1)Mover todo lo que no es kingdom a la derecha 2 lugares
+2) Hacer esas columnas NAs
+3)Repetir con cada clasificacion hasta llegar a genus
+```{r, echo=FALSE}
+library(readr)
+tax_cols<- c("Tax_id", "Species_name", "kingdom1", "kingdom", "phylum1", "phylum", 
+             "class1", "class", "order1", "order", "family1",
+             "family", "subfamily1", "subfamily", "genus1", 
+             "genus")
+
+infotax_ncbi <- read_delim("~/Desktop/CONABIO/infotax_ncbi.tsv", 
+                           "\t", escape_double = FALSE, col_names = tax_cols, 
+                           trim_ws = TRUE)
+infotax_ncbi<-as.data.frame(infotax_ncbi)
+infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),5:16]<-infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),3:16]
+infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),3:4]<-NA
+
+infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),7:16]<-infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),5:16]
+infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),5:6]<-NA
+
+infotax_ncbi[which(infotax_ncbi$class1!="class"),9:16]<-infotax_ncbi[which(infotax_ncbi$class1!="class"),7:16]
+infotax_ncbi[which(infotax_ncbi$class1!="class"),7:8]<-NA
+
+infotax_ncbi[which(infotax_ncbi$order1!="order"),11:16]<-infotax_ncbi[which(infotax_ncbi$order1!="order"),9:16]
+infotax_ncbi[which(infotax_ncbi$order1!="order"),9:10]<-NA
+
+infotax_ncbi[which(infotax_ncbi$family1!="family"),13:16]<-infotax_ncbi[which(infotax_ncbi$family1!="family"),11:16]
+infotax_ncbi[which(infotax_ncbi$family1!="family"),11:12]<-NA
+
+infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),15:16]<-infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),13:16]
+infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),13:14]<-NA
+
+infotax_ncbi<-infotax_ncbi[,-c(3,5,7,9,11,13,15)]
+
+infotax_ncbi<-as.data.frame(infotax_ncbi)
+write_csv(infotax_ncbi, "infotax_ncbi.csv")
+```
+
+```{r, echo=FALSE}
+library(readr)
+genbank1805 <- read_csv("~/Desktop/CONABIO/genbank1805.csv")
+infotax_ncbi <- read_csv("~/Desktop/CONABIO/infotax_ncbi.csv")
+```
+
+Genero los ids solos y hago el match a la lista de info taxonómica
+```{r, echo=FALSE}
+tax_list<-genbank1805$tax_id
+tax_list<-gsub("taxon:", "", tax_list)
+genbank1805$tax_id2<-tax_list
+
+
+matched_species<-match(genbank1805$tax_id2, infotax_ncbi$Tax_id)
+matched_species<-as.data.frame(matched_species)
+
+
+tax_df<-infotax_ncbi[,matched_species]
+
+#Agrego una fila para los datos que no vienen en taxonomy
+not_ncbi<-c("not_ncbi", NA, NA, NA, NA, NA, NA, NA, NA)
+
+
+infotax_ncbi<-rbind(infotax_ncbi, not_ncbi)
+matched_species[which(is.na(matched_species)),]<-9952
+
+#Se crea el df completo de info taxonomica de acuerdo al vector matched_species
+
+tax_df<-infotax_ncbi[matched_species$matched_species,]
+
+#Se une a los datos de genbank
+
+genbank<-cbind(genbank1805, tax_df)
+
+```
+
+```{r, echo=FALSE}
+
+
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
