@@ -276,27 +276,3 @@ tax_df<-infotax_ncbi[matched_species$matched_species,]
 genbank<-cbind(genbank1805, tax_df)
 
 ```
-
-```{r, echo=FALSE}
-
-
-```
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
