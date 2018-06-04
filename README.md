@@ -3,4 +3,4 @@ Georeferencing published genetic data of Mexican biodiversity. This is based on 
 
 Functions in the order they should be run to retrieve data from BOLD and GENBANK are at each of their folders, you can see these R Markdowns on the following links:
 
-![Instructions to retrieve data from Genebank.](/GENBANK/retrieve_genbank.Rmd)
+[Instructions to retrieve data from Genebank.](/GENBANK/retrieve_genbank.Rmd)
