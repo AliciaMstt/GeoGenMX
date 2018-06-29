@@ -3,7 +3,9 @@ library(readr)
 library(tidyr)
 library(magrittr)
 
-
+#Lo que empieza a partir de aquí hasta la línea 89 se corrio una sola vez para corregir errores que surgieron en los datos 
+#crudos
+#Correcciones al tsv 
 genbank_final <- read_delim("~/Desktop/CONABIO/genbank_final.tsv", 
                             "\t", escape_double = FALSE, col_names = FALSE, 
                             trim_ws = TRUE)
@@ -34,21 +36,12 @@ colnames(genbank2)<-c("accession_v", "accession", "locus", "seq_len", "molecule"
 
 genbank_df<-rbind(genbank_final1, genbank2)
 write.csv(genbank_df, file="genbank_final.csv")
+
+
+
 #Importar el nuevo csv y checar que no haya ningun warning 
 genbank_final <- read_csv("~/Desktop/CONABIO/genbank_final.csv")
+genbank_final<-as.data.frame(genbank_final)
 #El unico warning fue para la primera columna que le puso el nombre X1
-genbank_final<-genbank_final[,2:16]
-#Get tax id list 
-tax_list<-genbank_final$tax_id
-tax_list<-gsub("taxon:", "", tax_list)
-tax_list<-unique(tax_list)
-write_delim(as.data.frame(tax_list), "./tax_genbank", delim=",")
-
-#Sacar la info de NCBI de taxonomy
-infotax_ncbi <- read_delim("~/Desktop/CONABIO/infotax_ncbi.tsv", 
-                           "\t", escape_double = FALSE, col_names = FALSE, 
-                           trim_ws = TRUE)
-
-
-
+genbank_final<-genbank_final[,-1]
 

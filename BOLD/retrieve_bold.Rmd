@@ -115,6 +115,7 @@ Se agrega la columna kingdom a los datos de BOLD:
 ```{r}
 matched_phylum<-match(bold_data$phylum_name, phylumid_kingdom$phylum_name)
 bold_data$kingdom<-phylumid_kingdom$kingdom[matched_phylum]
+write.csv(bold_data, "/home/lmalpica/Desktop/CONABIO/bold_data_complete")
 
 ```
 
@@ -132,7 +133,7 @@ colnames(nospecies)<-c("species_name", "number_seqs")
 colnames(species_seqs)<-c("species_name", "number_seqs")
 species_seqs<-rbind(species_seqs, nospecies)
 
-species_seqs[1:10,]
+species_seqs
 ```
 
 Agrupar los resultados por phylum y kingdom y hacer conteo:
@@ -165,9 +166,16 @@ king_plot1<-ggplot(data=king_seqs, aes(x=kingdom, y=num_seqs, fill=kingdom)) +
 king_plot2<-ggplot(data=king_seqs[-4,], aes(x=kingdom, y=num_seqs, fill=kingdom)) +
   geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
 
-king_plot1
-king_plot2
 
+
+```
+
+```{r king_plot1, echo=FALSE, warning=FALSE}
+king_plot1
+```
+
+```{r king_plot2, echo=FALSE, warning=FALSE}
+king_plot2
 ```
 
 
@@ -185,9 +193,22 @@ phylum_plot3<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs>=200 & phylum_seqs$Nu
 phylum_plot4<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs>=1000,], aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
   geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90)) 
 
+
+```
+
+```{r phylum_plot1, echo=FALSE, warning=FALSE}
 phylum_plot1
+```
+
+```{r phylum_plot2, echo=FALSE, warning=FALSE}
 phylum_plot2
+```
+
+```{r phylum_plot3, echo=FALSE, warning=FALSE}
 phylum_plot3
+```
+
+```{r phylum_plot4, echo=FALSE, warning=FALSE}
 phylum_plot4
 ```
 
