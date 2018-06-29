@@ -5,7 +5,7 @@ date: "17 de mayo de 2018"
 output: html_document
 ---
 
-#Datos de BOLD
+# Datos de BOLD
 
 El dataset se descargó directamente desde la página de BOLD, haciendo la búsqueda para "México". 
 
