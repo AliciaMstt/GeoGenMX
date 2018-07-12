@@ -14,6 +14,31 @@ esearch -db nucleotide -query '/country="Mexico" NOT(homo sapiens [ORGN] OR viru
 
 esearch -db nucleotide -query '/country="Mexico" NOT(/country="New Mexico")'  |efetch -format gbc | xtract -insd  INSDSeq_primary-accession INSDSeq_locus INSDSeq_length INSDSeq_moltype INSDSeq_sequence INSDSeq_definition INSDSeq_organism INSDSeq_taxonomy source organism mol_type country lat_lon altitude db_xref> genbank_all.tsv
 ```
+La descarga sin excluir ningun grupo de organismos era demasiado grande por lo cual se dividio en partes:
+-metazoa
+-viridiplantae
+-fungi
+-bacteria, que tiene las subdivisiones proteobacteria, environmental samples y other bacteria (en proceso)
+-other
+
+```
+ 
+cat fungi_genbank.tsv > genbank_euk.tsv
+cat genbank_metazoa.tsv >> genbank_euk.tsv
+cat genbank_viridiplantae.tsv >> genbank_euk.tsv
+cat other_genbank.tsv >> genbank_euk.tsv
+
+```
+
+Filtrar con grep para excluir a los que no tengan como país México:
+
+```
+ cat genbank_euk.tsv | grep "Mexico" > genbank_euk_Mexico.tsv
+cat  genbank_euk_Mexico.tsv | grep -v "New Mexico" > genbank_euk2.tsv
+ cat genbank_euk2.tsv | grep -v "USA" > genbank_euk.tsv  
+```
+
+
 
 Teniendo eso al importar los datos directo a R había discrepancias en el número de columnas, para arreglar esto ocupamos bash one-liners que se pueden ver en el archivo fileprocessing.sh. Deben de ser 15 columnas:
 
@@ -36,8 +61,9 @@ Teniendo eso al importar los datos directo a R había discrepancias en el númer
 En algunos casos hay una columna extra con el id de de bold, ésta columna se conservó.
 
 
+
 ```
-cat genbank_filtered18-05.tsv | awk -F "\t" '{print NF}' | sort | uniq
+cat genbank_euk.tsv | awk -F "\t" '{print NF}' | sort | uniq
 ```
 
 Salieron:
@@ -49,16 +75,16 @@ Salieron:
 Separar las filas por numero de campos:
 
 ```
-cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==14) print $0 }' > genbank_filtered14.tsv 
-cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==15) print $0 }' > genbank_filtered15.tsv
-cat genbank_filtered18-05.tsv | awk -F "\t" '{if (NF==16) print $0 }' > genbank_filtered16.tsv 
+cat genbank_euk.tsv | awk -F "\t" '{if (NF==14) print $0 }' > genbank_filtered14.tsv 
+cat genbank_euk.tsv | awk -F "\t" '{if (NF==15) print $0 }' > genbank_filtered15.tsv
+cat genbank_euk.tsv | awk -F "\t" '{if (NF==16) print $0 }' > genbank_filtered16.tsv 
 
 ```
 
 Arreglamos el de 14 columnas:
-```{r, echo=FALSE}
+```{r, warning=FALSE, message=FALSE}
 library(readr)
-gb_14 <- read_delim("~/Desktop/CONABIO/genbank_filtered14.tsv", 
+gb_14 <- read_delim("./genbank_filtered14.tsv", 
                             "\t", escape_double = FALSE, col_names = FALSE, 
                             trim_ws = TRUE)
 gb_14_1<-gb_14[,1:5]
@@ -71,16 +97,16 @@ gb_1<-gb_1[,-16]
 ```
 
 Arreglamos el de 16 columnas:
-```{r, echo=FALSE}
-gb_16 <- read_delim("~/Desktop/CONABIO/genbank_filtered16.tsv", 
+```{r, warning=FALSE, message=FALSE}
+gb_16 <- read_delim("./genbank_filtered16.tsv", 
                             "\t", escape_double = FALSE, col_names = FALSE, 
                             trim_ws = TRUE)
 bold_ids<-gb_16[,15]
 gb_2<-gb_16[,-15]
 ```
 
-```{r, echo=FALSE}
-gb_15 <- read_delim("~/Desktop/CONABIO/genbank_filtered15.tsv", 
+```{r, warning=FALSE, message=FALSE}
+gb_15 <- read_delim("./genbank_filtered15.tsv", 
                             "\t", escape_double = FALSE, col_names = FALSE, 
                             trim_ws = TRUE)
 gb_15$bold_ids<-NA
@@ -152,7 +178,7 @@ bold_id<-rbind(gb_1_boldids, bold_ids, gb_15_boldids)
 
 
 gb<-cbind(gb, bold_id)
-write_csv(gb, "genbank_1805.csv")
+write_csv(gb, "genbank_euk.csv")
 ```
 
 
@@ -164,22 +190,22 @@ Lo mismo paso con:
 1659837	45150	Exserohilum rostratum	kingdom	Fungi	phylum	Ascomycota	class	Dothideomycetes	order	Pleosporales	family	Pleosporaceae	genus	Exserohilum
 
 ```
- sed 's/taxon:687269/taxon:2175846/g' genbank_1805.csv > genbank_18051.csv
- sed 's/taxon:45150/taxon:1659837/g' genbank_18051.csv > genbank1805.csv
+ sed 's/taxon:687269/taxon:2175846/g' genbank_euk.csv > genbank_euk2.csv
+ sed 's/taxon:45150/taxon:1659837/g' genbank_euk2.csv > genbank_euk.csv
 
 ```
 
 A partir de ahora se trabaja solo con el csv generado
 
-```{r, echo=FALSE}
+```{r, warning=FALSE, message=FALSE}
 library(readr)
-genbank1805 <- read_csv("~/Desktop/CONABIO/genbank1805.csv")
+genbank_euk <- read_csv("./genbank_euk.csv")
 ```
 
 Obtener información taxonómica:
 
 ```{r, echo=FALSE}
-tax_list<-genbank_1805$tax_id
+tax_list<-genbank_euk$tax_id
 tax_list<-gsub("taxon:", "", tax_list)
 tax_list<-unique(tax_list)
 write_delim(as.data.frame(tax_list), "./tax_genbank", delim=",")
@@ -189,8 +215,27 @@ write_delim(as.data.frame(tax_list), "./tax_genbank", delim=",")
 Se quitan los ids que no empiezan con un dígito ya que estos no son de genebank, y se arregla el formato a que estén en 1 línea y separados por comas.
 ```
 cat tax_genbank | grep -P "^[[:digit:]]"  > tax_genbank1
+
+```
+Se divide para que pueda recibir todos los parametros el fetch 
+
+```
+head -5000 tax_genbank1 >tax_genbank1.1
+head -15000 tax_genbank1 | tail -5000 > taxgenbank1.3
+ head -15000 tax_genbank1 | tail -5000 > 
+ taxgenbank1.3
+head -20000 tax_genbank1 | tail -5000 > taxgenbank1.4
+tail -2112 tax_genbank1 > taxgenbank1.5
+
+```
+```
 cat tax_genbank1 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank.txt
 
+cat tax_genbank1.1 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank11.txt
+cat taxgenbank1.2 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank12.txt
+cat taxgenbank1.3 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank13.txt
+cat taxgenbank1.4 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank14.txt
+cat taxgenbank1.5 | awk '{printf "%s,",$0} END {print ""}' > tax_genbank15.txt
 ```
 Se obtienen la info taxonómica para todas las especies, la siguiente línea es un ejemplo de la especie con el id  2175846, en el archivo retrieve_infotax_genebankall.sh se copiaron los ids generados en el paso anterior.
 ```
@@ -206,14 +251,14 @@ Corregir columnas desfasadas:
 1)Mover todo lo que no es kingdom a la derecha 2 lugares
 2) Hacer esas columnas NAs
 3)Repetir con cada clasificacion hasta llegar a genus
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=F, message=F}
 library(readr)
 tax_cols<- c("Tax_id", "Species_name", "kingdom1", "kingdom", "phylum1", "phylum", 
              "class1", "class", "order1", "order", "family1",
              "family", "subfamily1", "subfamily", "genus1", 
              "genus")
 
-infotax_ncbi <- read_delim("~/Desktop/CONABIO/infotax_ncbi.tsv", 
+infotax_ncbi <- read_delim("./infotax_ncbi.tsv", 
                            "\t", escape_double = FALSE, col_names = tax_cols, 
                            trim_ws = TRUE)
 infotax_ncbi<-as.data.frame(infotax_ncbi)
@@ -236,36 +281,83 @@ infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),15:16]<-infotax_ncbi[wh
 infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),13:14]<-NA
 
 infotax_ncbi<-infotax_ncbi[,-c(3,5,7,9,11,13,15)]
+```
 
+Separamos a los que les falte el reino para agregarlo 
+
+```{r, message=FALSE, warning=FALSE}
+phylum_sinkin<-unique(infotax_ncbi[is.na(infotax_ncbi$kingdom), 4:9])
+```
+Estos se agregaron a mano (Faltan muchos por agregar al final resultaron 439, aunque tomando hasta genus, ojo ahorita no filtre lo de pais correctamente porque en la ronda anterior perdi muchas especies de plantas lo repetire y vere como se ve):
+Phylum Euryarchaeota: de acuerdo a wiki pertenece a Archaea
+Phylum Candidatus Bathyarchaeota: phylum recientemente propuesto de Archaea
+Phylum Candidatus Micrarchaeota: phylum recientemente propuesto de Archaea
+Phylum Crenarchaeota: Archaea
+
+family Flaviviridae: Virus
+
+family Entamoebidae: Protista
+class: Florideophyceae, phylum=Rhodophyta, Reino=Protista
+phylum Bacillariophyta:Protista
+phylum Oligohymenophorea:Protista
+phylum Oomycetes:Protista
+phylum Phaeophyceae:Protista
+genus Chlorarachnion:Protista
+
+
+```{r, warning=FALSE, message=FALSE}
+infotax_ncbi[which(infotax_ncbi$phylum=="Euryarchaeota"),3]<-"Archaea"
+infotax_ncbi[which(infotax_ncbi$phylum=="Candidatus Bathyarchaeota"),3]<-"Archaea"
+infotax_ncbi[which(infotax_ncbi$phylum=="Candidatus Micrarchaeota"),3]<-"Archaea"
+infotax_ncbi[which(infotax_ncbi$phylum=="Crenarchaeota"),3]<-"Archaea"
+
+infotax_ncbi[which(infotax_ncbi$family=="Entamoebidae"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),4]<-"Rhodophyta"
+infotax_ncbi[which(infotax_ncbi$phylum=="Bacillariophyta"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$phylum=="Oligohymenophorea"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$phylum=="Phaeophyceae"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$phylum=="Oomycetes"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$genus=="Chlorarachnion"),3]<-"Protista"
+
+
+infotax_ncbi[which(infotax_ncbi$family=="Flaviviridae"),3]<-"Virus"
+
+```
+
+```{r, message=FALSE, warning=FALSE}
 infotax_ncbi<-as.data.frame(infotax_ncbi)
 write_csv(infotax_ncbi, "infotax_ncbi.csv")
 ```
 
 ```{r, echo=FALSE}
 library(readr)
-genbank1805 <- read_csv("~/Desktop/CONABIO/genbank1805.csv")
-infotax_ncbi <- read_csv("~/Desktop/CONABIO/infotax_ncbi.csv")
+genbank <- read_csv("./genbank_euk.csv")
+infotax_ncbi <- read_csv("./infotax_ncbi.csv")
 ```
 
 Genero los ids solos y hago el match a la lista de info taxonómica
-```{r, echo=FALSE}
-tax_list<-genbank1805$tax_id
+```{r, echo=FALSE, warning=F, message=F}
+tax_list<-genbank$tax_id
 tax_list<-gsub("taxon:", "", tax_list)
-genbank1805$tax_id2<-tax_list
+genbank$tax_id2<-tax_list
 
 
-matched_species<-match(genbank1805$tax_id2, infotax_ncbi$Tax_id)
-matched_species<-as.data.frame(matched_species)
-
-
-tax_df<-infotax_ncbi[,matched_species]
 
 #Agrego una fila para los datos que no vienen en taxonomy
 not_ncbi<-c("not_ncbi", NA, NA, NA, NA, NA, NA, NA, NA)
 
-
 infotax_ncbi<-rbind(infotax_ncbi, not_ncbi)
-matched_species[which(is.na(matched_species)),]<-9952
+
+
+
+
+matched_species<-match(genbank$tax_id2, infotax_ncbi$Tax_id)
+matched_species<-as.data.frame(matched_species)
+matched_species[which(is.na(matched_species)),]<-nrow(infotax_ncbi)
+
+
+
 
 #Se crea el df completo de info taxonomica de acuerdo al vector matched_species
 
@@ -273,6 +365,189 @@ tax_df<-infotax_ncbi[matched_species$matched_species,]
 
 #Se une a los datos de genbank
 
-genbank<-cbind(genbank1805, tax_df)
+genbank<-cbind(genbank, tax_df)
 
 ```
+
+
+Data frame completo 
+
+```{r}
+write_csv(genbank, "genbank_complete.csv")
+
+```
+
+#Exploración de los datos
+Ver cuantas secuencias hay por phylum y por kingdom.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+library(magrittr)
+library(dplyr)
+king_phyl<-genbank%>% group_by(phylum, kingdom) %>% summarise(n())
+colnames(king_phyl)<-c("phylum", "kingdom", "num_seqs")
+king_seqs<-genbank%>%group_by(kingdom)%>%summarise(n())
+king_seqs
+
+genbank_nlatlon<-genbank[genbank$`lat-lon`=="-",]
+genbank$latlon_info<-NA
+genbank$latlon_info<-genbank$`lat-lon`!="-"
+latlon_kin<-genbank%>%group_by(kingdom, latlon_info)%>%summarise(n())
+colnames(latlon_kin)<-c("kingdom", "latlon_info", "num_seqs")
+write_tsv(latlon_kin, "latlon_genbank.tsv")
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+kingplot<-ggplot(data=king_phyl, aes(x=kingdom, y=num_seqs, fill=kingdom))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias por reino")
+
+```
+
+```{r kingplot, echo=FALSE, warning=FALSE, message=FALSE}
+
+kingplot
+
+```
+
+
+```{r, warning=F, message=F, echo=F}
+
+kin_latlon_plot<-ggplot(latlon_kin, aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por reinos")
+
+kin_latlon_plot2<-ggplot(latlon_kin[-c(5:6,12:13),], aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por reinos, excluyendo Metazoa y NA")
+
+latlon_kin
+```
+
+```{r kin_latlon_plot, message=FALSE, warning=FALSE}
+kin_latlon_plot
+```
+
+
+```{r kin_latlon_plot2, message=FALSE, warning=FALSE}
+kin_latlon_plot2
+```
+
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+phyl_metplot2<-ggplot(data=king_phyl[king_phyl$kingdom=="Metazoa" & king_phyl$phylum !="Chordata" & king_phyl$phylum !="Arthropoda",], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Metazoa (sin Chordata ni Arthropoda)")
+
+
+```
+
+
+Phylum
+
+```{r}
+
+phyl_metplot<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Metazoa"),], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias por phylum para Metazoa")
+
+king_phyl[which(king_phyl$kingdom=="Metazoa"), c(1,3)]
+```
+
+```{r phyl_metplot, message=F, warning=F}
+phyl_metplot
+```
+
+
+
+```{r, warning=FALSE, message=FALSE}
+phyl_metplot2
+```
+Viridiplantae
+
+```{r, message=F, echo=F, warning=FALSE}
+phyl_plantae<-ggplot(data=king_phyl[king_phyl$kingdom=="Viridiplantae",], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Viridiplantae")
+king_phyl[which(king_phyl$kingdom=="Viridiplantae"),c(1,3)]
+```
+
+```{r phyl_plantae, message=F, warning=F}
+phyl_plantae
+```
+
+Fungi
+```{r, echo=F, message=F, warning=F}
+phyl_fungi<-ggplot(data=king_phyl[king_phyl$kingdom=="Fungi",], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Fungi")
+king_phyl[which(king_phyl$kingdom=="Fungi"),c(1,3)]
+```
+
+```{r phyl_fungi, message=F, warning=F}
+phyl_fungi
+```
+Protista 
+```{r, message=F, echo=F, warning=FALSE}
+phyl_prot<-ggplot(data=king_phyl[king_phyl$kingdom=="Protista",], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Protista")
+View(king_phyl[which(king_phyl$kingdom=="Protista"),])
+```
+
+```{r phyl_prot, message=F, warning=F}
+phyl_prot
+```
+
+Archaea
+```{r, echo=F, message=F, warning=FALSE}
+phyl_arc<-ggplot(data=king_phyl[king_phyl$kingdom=="Archaea",], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Archaea")
+View(king_phyl[which(king_phyl$kingdom=="Archaea"),])
+```
+
+```{r phyl_arc, message=F, warning=F}
+phyl_arc
+```
+
+Virus
+```{r, message=FALSE, warning=FALSE}
+king_phyl[which(king_phyl$kingdom=="Virus"),]
+```
+
+Información geográfica
+
+```{r}
+library(stringi)
+genbank<-mutate(genbank, estado_region=sapply(str_split(country, ":"), `[`, 2))
+
+estados<-c("Aguascalientes", "Baja California Sur", "Campeche", "Chihuahua", "Ciudad de México", "CDMX", "Cd. de México" , "D.F.", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero",  "Hidalgo", "Jalisco", "Estado de México", "Edo. Mex.", "Edo. de México", "Michoacán" , "Morelos",  "Nayarit",  "Nuevo León", "N. León", "Oaxaca", "Puebla",  "Querétaro", "Quintana Roo", "Q. Roo", "San Luis Potosí",  "Sinaloa","Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz","Yucatán",  "Zacatecas", "Baja California") 
+
+
+#ojo baja california debe quedar al final, para que primero pregunte si es baja california sur, y si no es ya siga hasta baja california, si baja california iba antes todos los de baja california sur los ponia como baja califronia. 
+
+#Función para obtener el estado a partir del partial match de estado región
+get_estado<-function(reg_est){
+  estado_match<-sapply(estados, grepl, reg_est)
+  estado<-estados[estado_match==T]
+  if(length(estado)<1){
+    estado=NA
+  }
+  return(estado)
+  }
+
+
+genbank$estado<-NA
+genbank$estado<-sapply(lapply(genbank[,28], get_estado), `[`, 1)
+genbank<-mutate(genbank, region=str_replace(estado_region, estado, " "))
+
+
+
+
+```
+
+
+
+
+#Filtro por phylum 
+```{r}
+genbank_fil<-genbank[genbank$phylum=="Arthropoda" | genbank$phylum="Chordata" ,]
+```
+
+
