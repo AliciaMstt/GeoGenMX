@@ -11,13 +11,13 @@ El dataset se descargó directamente desde la página de BOLD, haciendo la búsq
 
 El script EDA_bold.R se ocupó para hacer la primera exploración de los datos. Las partes de este script se irán explicando a continuación:
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 setwd( "/home/lmalpica/Desktop/CONABIO")
 library(readr)
 library(dplyr)
 library(tidyr)
 
-bold_data <- read_delim("~/Desktop/CONABIO/bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+bold_data <- read_delim("./bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 bold_data<-as.data.frame(bold_data)
 
 
@@ -25,7 +25,7 @@ bold_data<-as.data.frame(bold_data)
 
 En los pasos que siguen se vio una discrepancia entre los nombres de algunos phylum en BOLD y en NCBI, como la mayoría de los reinos se obtuvieron de taxonomy NCBI y además pensando en que despues todo va a ser una única base de datos, se modificaron a mano estos nombres:
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 
 bold_data[bold_data$phylum_name=="Chlorarachniophyta", 10]<-"Chlorarachniophyceae"
 bold_data[bold_data$phylum_name=="Glomeromycota",10]<-"Glomeromycotina"
@@ -58,8 +58,8 @@ efetch -db taxonomy -id 10190,10232,120557,1224,1264859,13809,1760,183924,201174
 
 Se importan los datos de los reinos de cada phylum:
 
-```{r}
-phylumid_kingdom <- read_delim("~/Desktop/CONABIO/phylumid_kingdom.tsv",  "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
+```{r,  warning=FALSE, message=FALSE}
+phylumid_kingdom <- read_delim("./phylumid_kingdom.tsv",  "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
 colnames(phylumid_kingdom)<-c("phylum_id", "phylum_name", "kingdom")
 
 ```
@@ -70,12 +70,12 @@ Actinobacteria esta repetida porque al extraer los ids, NCBI lo regresa dos vece
 1)Actinobacteria como phylum (id:201174)  
 2)Actinobacteria como clase, este ultimo se elimino
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 phylumid_kingdom<-phylumid_kingdom[-7,]
 ```
 
 
-Algunos phylum no tienen información del kingdom en NCBI únicamente de superkingdom, además algunos tenían nada de información de ninguna de las dos cosas, en estos casos se buscó a mano y se puso la información encontrada en wiki por el momento, después se hará una búsqueda más detallada en la literatura.
+Algunos phylum no tienen información del kingdom en NCBI únicamente de superkingdom, además algunos no tenían nada de información de ninguna de las dos cosas, en estos casos se buscó a mano y se puso la información encontrada en wiki por el momento, después se hará una búsqueda más detallada en la literatura.
 
 Rhodophyta = Taxonomy NCBI solo tiene superkingdom eukarya wiki pone plantae/protista
 Bacillariophyta =Taxonomy NCBI pone superkingdom eukarya wiki pone protista.
@@ -85,7 +85,7 @@ Ciliophora=Taxonomy NCBI pone eukarya wiki protista.
 
 Para Archea y Bacteria, Taxonomy NCBI las considera superkingdoms, por el momento se pusieron como kingdoms. 
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 phylumid_kingdom$kingdom[12]<-"Protista"
 phylumid_kingdom$kingdom[13]<-"Protista"
 phylumid_kingdom$kingdom[16]<-"Protista"
@@ -99,7 +99,7 @@ phylumid_kingdom$kingdom[15]<-"Archaea"
 
 Los siguientes phylum no aparecen en NCBI, la información por el momento viene de wiki, posteriormente se revisará la literatura. En el caso de Zygomicota en NCBI aparecen únicamente 4 subfilos, y son marcados como que pertenecen al reino Fungi.
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 phylumid_kingdom[39,]<-c(NA, "Cryptophycophyta", "Protista")
 phylumid_kingdom[40,]<-c(NA, "Heterokontophyta", "Protista")
 phylumid_kingdom[41,]<-c(NA, "Ochrophyta", "Protista")
@@ -112,16 +112,17 @@ phylumid_kingdom[45,]<-c(NA, "Zygomycota", "Fungi")
 
 Se agrega la columna kingdom a los datos de BOLD:
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 matched_phylum<-match(bold_data$phylum_name, phylumid_kingdom$phylum_name)
 bold_data$kingdom<-phylumid_kingdom$kingdom[matched_phylum]
-write.csv(bold_data, "/home/lmalpica/Desktop/CONABIO/bold_data_complete")
+write.csv(bold_data, "./bold_data_complete")
+
 
 ```
 
 Obtener la lista de secuencias por especie y el número de secuencias sin nombre de la especie:
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 
 species_seqs<-as.data.frame(table(as.factor(bold_data$species_name)))
 colnames(species_seqs)<- c("species_name", "number_seqs")
@@ -132,29 +133,30 @@ nospecies<-cbind("No_species", seqs_nospecies)
 colnames(nospecies)<-c("species_name", "number_seqs")
 colnames(species_seqs)<-c("species_name", "number_seqs")
 species_seqs<-rbind(species_seqs, nospecies)
+write_csv(species_seqs, "./BOLD_specieslist.csv")
 
-species_seqs
+
 ```
 
 Agrupar los resultados por phylum y kingdom y hacer conteo:
 
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 bold_phyl_king<-bold_data%>% group_by(phylum_name, kingdom) %>% summarise(n())
 colnames(bold_phyl_king)<-c("Phylum", "Kingdom", "Num_seqs")
+
+```
+
+
+Número de secuencias por reino:
+```{r,  warning=FALSE, message=FALSE}
 king_seqs<-bold_phyl_king%>%group_by(Kingdom)%>%summarise(sum(Num_seqs))
 colnames(king_seqs)<-c("kingdom", "num_seqs")
-
+king_seqs
 ```
-Sacar lista de secuencias por phylum:
 
-```{r}
-phylum_seqs<-as.data.frame(table(as.factor(bold_data$phylum_name)))
-colnames(phylum_seqs)<-c("Phylum", "Num_seqs")
-seqs_no_phyl<-nrow(bold_data)-sum(phylum_seqs$Num_seqs)
-```
 
 Plots:
-```{r}
+```{r,  warning=FALSE, message=FALSE}
 
 library(ggplot2)
 library(plotly)
@@ -179,58 +181,340 @@ king_plot2
 ```
 
 
-```{r}
+
+Sacar lista de secuencias por phylum en cada reino:
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_metazoa<-as.data.frame(table(as.factor(bold_data[which(bold_data$kingdom=="Metazoa"),10])))
+colnames(phylum_metazoa)<-c("Phylum", "Num_seqs")
+phylum_metazoa
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
 library(ggplot2)
 library(plotly)
 library(grid)
 library(gridExtra)
-phylum_plot1<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs<=30,], aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
-  geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
-phylum_plot2<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs>30 & phylum_seqs$Num_seqs<200,], aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
-  geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90)) 
-phylum_plot3<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs>=200 & phylum_seqs$Num_seqs<1000,], aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
-  geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90)) 
-phylum_plot4<-ggplot(data=phylum_seqs[phylum_seqs$Num_seqs>=1000,], aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
-  geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90)) 
 
-
+metazoa_plot<-ggplot(data=phylum_metazoa, aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
+     ggtitle("Phylum en reino Metazoa") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
 ```
 
-```{r phylum_plot1, echo=FALSE, warning=FALSE}
-phylum_plot1
-```
 
-```{r phylum_plot2, echo=FALSE, warning=FALSE}
-phylum_plot2
-```
-
-```{r phylum_plot3, echo=FALSE, warning=FALSE}
-phylum_plot3
-```
-
-```{r phylum_plot4, echo=FALSE, warning=FALSE}
-phylum_plot4
-```
-
-Conteos de secuencias por clase para cada reino:
-
-```{r}
-bold_class_king<-bold_data%>% group_by(class_name, kingdom) %>% summarise(n())
-colnames(bold_class_king)<-c("Class", "Kingdom", "Num_seqs")
-classes_metazoa<-bold_class_king[bold_class_king$Kingdom=="Metazoa",]
-classes_viridiplantae<-bold_class_king[bold_class_king$Kingdom=="Viridiplantae",]
-classes_protista<-bold_class_king[bold_class_king$Kingdom=="Protista",]
-classes_fungi<-bold_class_king[bold_class_king$Kingdom=="Fungi",]
-classes_archaea<-bold_class_king[bold_class_king$Kingdom=="Archaea",]
-classes_bacteria<-bold_class_king[bold_class_king$Kingdom=="Bacteria",]
-
+```{r metazoa_plot, echo=FALSE, warning=FALSE}
+metazoa_plot
 
 ```
 
 
-Separar los datos que tienen información sobre latitud y longitud:
-```{r}
-bold_latlon<-bold_data[!is.na(bold_data$lon),]
-bold_latlon<-bold_latlon[!is.na(bold_latlon$lat),]
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_plantae<-as.data.frame(table(as.factor(bold_data[which(bold_data$kingdom=="Viridiplantae"),10])))
+colnames(phylum_plantae)<-c("Phylum", "Num_seqs")
+phylum_plantae
+
 ```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+plantae_plot<-ggplot(data=phylum_plantae, aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
+     ggtitle("Phylum en reino Viridiplantae") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r plantae_plot, echo=FALSE, warning=FALSE}
+plantae_plot
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_fungi<-as.data.frame(table(as.factor(bold_data[which(bold_data$kingdom=="Fungi"),10])))
+colnames(phylum_fungi)<-c("Phylum", "Num_seqs")
+phylum_fungi
+
+```
+
+```{r, include=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+fungi_plot<-ggplot(data=phylum_fungi, aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
+     ggtitle("Phylum en reino Fungi") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r fungi_plot, echo=FALSE, warning=FALSE}
+fungi_plot
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_protista<-as.data.frame(table(as.factor(bold_data[which(bold_data$kingdom=="Protista"),10])))
+colnames(phylum_protista)<-c("Phylum", "Num_seqs")
+phylum_protista
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+protista_plot<-ggplot(data=phylum_protista, aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
+     ggtitle("Phylum en reino protista") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r protista_plot, echo=FALSE, warning=FALSE}
+protista_plot
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_bacteria<-as.data.frame(table(as.factor(bold_data[which(bold_data$kingdom=="Bacteria"),10])))
+colnames(phylum_bacteria)<-c("Phylum", "Num_seqs")
+phylum_bacteria
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+bacteria_plot<-ggplot(data=phylum_bacteria, aes(x=Phylum, y=Num_seqs, fill=Phylum)) +
+     ggtitle("Phylum en reino Bacteria") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r bacteria_plot, echo=FALSE, warning=FALSE}
+bacteria_plot
+
+```
+
+```{r,  warning=FALSE, message=FALSE}
+phylum_archaea<-bold_data[which(bold_data$kingdom=="Archaea"),c(81,10,12,14,16,18,22)]
+phylum_archaea
+```
+
+
+ 
+```{r,  warning=FALSE, message=FALSE}
+nospecies<-bold_data[which(is.na(bold_data$species_name)), c(81,10,12,14,16,18,22)]
+
+```
+
+
+
+```{r,  warning=FALSE, message=FALSE}
+nospecies_phyl_king<-nospecies%>% group_by(phylum_name, kingdom) %>% summarise(n())
+colnames(nospecies_phyl_king)<-c("Phylum", "Kingdom", "Num_seqs")
+```
+
+
+
+
+Número de secuencias por reino (sin nombre de la especie):
+```{r,  warning=FALSE, message=FALSE}
+nosp_king<-nospecies_phyl_king%>%group_by(Kingdom)%>%summarise(sum(Num_seqs))
+colnames(nosp_king)<-c("kingdom", "num_seqs")
+king_seqs
+```
+
+
+Agregar variables binarias que indiquen la información geográfica con la que se cuenta:
+```{r,  warning=FALSE, message=FALSE}
+bold_data$provincestate_info<-NA
+bold_data$region_info<-NA
+bold_data$sector_info<-NA
+bold_data$exactsite_info<-NA
+bold_data$latlon_info<-NA
+
+bold_data$provincestate_info<-is.na(bold_data$province_state)==FALSE
+bold_data$region_info<-is.na(bold_data$region)==FALSE
+bold_data$sector_info<-is.na(bold_data$sector)==FALSE
+bold_data$exactsite_info<-is.na(bold_data$exactsite)==FALSE
+bold_data$latlon_info<-is.na(bold_data$lat)==FALSE
+
+data_latlon_kin<-bold_data%>%group_by(kingdom, latlon_info)%>%summarise(n())
+colnames(data_latlon_kin)<-c("kingdom", "latlon_info", "num_seqs")
+write_tsv(data_latlon_kin, "latlon_bold.tsv")
+data_latlon_kin
+```
+
+
+
+```{r, warning=F, message=F, echo=F}
+
+reinos_latlon_plot<-ggplot(data_latlon_kin, aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por reinos")
+
+reinos_latlon_plot2<-ggplot(data_latlon_kin[-(7:8),], aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por reinos, excluyendo Metazoa")
+
+
+```
+
+```{r reinos_latlon_plot, message=FALSE, warning=FALSE}
+reinos_latlon_plot
+```
+```{r reinos_latlon_plot2, message=FALSE, warning=FALSE}
+reinos_latlon_plot2
+```
+
+Separar los datos que no tienen info de coordenadas. Hay 13120 observaciones que no cuentan con coordenadas. 
+
+```{r, warning=FALSE, message=FALSE}
+bold_nlatlon<-bold_data[which(is.na(bold_data$lon)),]
+bold_nlatlon<-bold_nlatlon[which(is.na(bold_nlatlon$lat)),]
+nrow(bold_nlatlon)
+```
+
+Analizar que información geográfica hay para los datos que no poseen coordenadas.
+
+Datos de país (México)
+El data frame bold data tiene 87682 observaciones, como se puede ver para los datos de BOLD todos tienen como país México (eso incluiría todos los que no tienen latitud y longitud)
+```{r, warning=FALSE, message=FALSE}
+nrow(bold_data[bold_data$country=="Mexico",])
+```
+
+Datos de estado o provincia.
+
+```{r, warning=FALSE, message=FALSE}
+ncoo_phylkin_prov<-bold_nlatlon%>% group_by(phylum_name, kingdom, provincestate_info) %>% summarise(n())
+colnames(ncoo_phylkin_prov)<-c("phylum_name", "kingdom", "provincestate_info", "num_seqs")
+ncoo_king_prov<-bold_nlatlon%>%group_by(kingdom, provincestate_info)%>%summarise(n())
+colnames(ncoo_king_prov)<-c("kingdom", "province_state_info", "num_seqs")
+ncoo_king_prov
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+prov_kin_plot<-ggplot(ncoo_king_prov, aes(x=kingdom, y=num_seqs, fill=province_state_info)) +
+     ggtitle("Observaciones sin coordenadas, datos del estado.") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r prov_kin_plot, echo=FALSE, warning=FALSE}
+prov_kin_plot
+```
+
+
+Datos de region.
+```{r, warning=FALSE, message=FALSE}
+ncoo_phylkin_reg<-bold_nlatlon%>% group_by(phylum_name, kingdom, region_info) %>% summarise(n())
+colnames(ncoo_phylkin_reg)<-c("phylum_name", "kingdom", "region_info", "num_seqs")
+ncoo_king_reg<-bold_nlatlon%>%group_by(kingdom, region_info)%>%summarise(n())
+colnames(ncoo_king_reg)<-c("kingdom", "region_info", "num_seqs")
+ncoo_king_reg
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+reg_kin_plot<-ggplot(ncoo_king_reg, aes(x=kingdom, y=num_seqs, fill=region_info)) +
+     ggtitle("Observaciones sin coordenadas, datos de la región") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r reg_kin_plot, echo=FALSE, warning=FALSE}
+reg_kin_plot
+```
+
+
+
+
+
+Datos de sector.
+```{r, warning=FALSE, message=FALSE}
+ncoo_phylkin_sec<-bold_nlatlon%>% group_by(phylum_name, kingdom, sector_info) %>% summarise(n())
+colnames(ncoo_phylkin_sec)<-c("phylum_name", "kingdom", "sector_info", "num_seqs")
+ncoo_king_sec<-bold_nlatlon%>%group_by(kingdom, sector_info)%>%summarise(n())
+colnames(ncoo_king_sec)<-c("kingdom", "sector_info", "num_seqs")
+ncoo_king_sec
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+sec_kin_plot<-ggplot(ncoo_king_sec, aes(x=kingdom, y=num_seqs, fill=sector_info)) +
+     ggtitle("Observaciones sin coordenadas, datos del sector") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r sec_kin_plot, echo=FALSE, warning=FALSE}
+sec_kin_plot
+```
+Datos del sitio exacto.
+```{r, warning=FALSE, message=FALSE}
+ncoo_phylkin_exsit<-bold_nlatlon%>% group_by(phylum_name, kingdom, exactsite_info) %>% summarise(n())
+colnames(ncoo_phylkin_exsit)<-c("phylum_name", "kingdom", "exactsite_info", "num_seqs")
+ncoo_king_exsit<-bold_nlatlon%>%group_by(kingdom, exactsite_info)%>%summarise(n())
+colnames(ncoo_king_exsit)<-c("kingdom", "exactsite_info", "num_seqs")
+ncoo_king_exsit
+```
+
+```{r,  warning=FALSE, message=FALSE}
+
+library(ggplot2)
+library(plotly)
+library(grid)
+library(gridExtra)
+
+exsit_kin_plot<-ggplot(ncoo_king_exsit, aes(x=kingdom, y=num_seqs, fill=exactsite_info)) +
+     ggtitle("Observaciones sin coordenadas, datos del sitio exacto") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r exsit_kin_plot, echo=FALSE, warning=FALSE}
+exsit_kin_plot
+```
+
+
+
+
+
+
+
+
+
+
 
