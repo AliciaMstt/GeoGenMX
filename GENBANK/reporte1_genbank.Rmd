@@ -1,0 +1,546 @@
+---
+title: "REPORTE GENBANK"
+author: "Lorena Malpica"
+date: "17 de julio de 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+###Se trabaja únicamente con los phylum seleccionados:
+   Metazoa: Chordata y Arthropoda
+   Fungi:Basidiomycota y Ascomycota
+   Viridiplantae:Magnoliophyta y Pinophyta
+
+```{r, echo=F, warning=F, message=F, cache=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(magrittr)
+
+genbank<-read_delim("./GENBANK_data_m.csv", delim = "|")
+
+
+```
+
+
+```{r, echo=F, warning=F, message=F}
+library(tidyr)
+library(stringr)
+#quitar el nombre de la especie de la definición para tener la lista de definiciones únicas más corta
+genbank_1<-mutate(genbank, definition_1=str_replace(definition, source_organism, " "))
+
+```
+
+```{r, echo=F, warning=F, message=F}
+#Quitar la primera parte que muchas veces es la cepa o el lugar genomico del fragmento de genoma del que se trata 
+#Intentar quitar cepas vouchers etc de la definicion.
+#work in progress...
+
+
+definition_1<-genbank_1$definition_1
+
+
+definition_1_1<-str_replace_all(definition_1, "_|\\:|#|/|\\*", "")
+definition_1_1<-str_replace_all(definition_1_1, ".+ ipomoeae|.+ apicola|Cryptococcus gattii|Chaunopycnis pustulata|KM1|<CAN>|araneetroplus synspilus |araneetroplus fenestratus |tesimogastroides sp|enkinsia|.+ glabrata|MITS|(in Fungi)|Hexagonia sp|San Luis Potosi|from|TYPE material|\\(\\)|Mammilloydia candida|culture|Micos River|Chica cave|Pachon cave|Oligotrofic mesocosms in Cuatro Cienegas, Mexico|isolationsource|var albidus|Soto|et al|&|E Martinez|and|Estrada|Huerta|Figueroa|Salazar|Reyes|Castillejos|Suarez|Tenorio sn|Kroemer|-collection|Collection of Phytopathogenic FungiUACH|Antrodia malicola","")
+definition_1_1<-str_replace(definition_1_1, ".?Candida.?[:blank:][:alnum:]+|Uncultured[:blank:][:alnum:]+|.?Cryptococcus.?[:blank:][:alnum:]+|Und[:blank:]+[:alnum:]+|.?Cryptochelys.?[:blank:][:alnum:]+|.?Cida.?[:blank:][:alnum:]+", "")
+definition_1_1<-str_replace(definition_1_1, "scaffold([0-9]+)|Scaffold([0-9]+),", "")
+definition_1_1<-str_replace(definition_1_1, "scaffold_([0-9]+), ", "")
+definition_1_1<-str_replace(definition_1_1, " ASM165401v1, | ASM165402v1, ", "")
+definition_1_1<-str_replace(definition_1_1, "voucher[:blank:]([:alnum:]|-)+", "")
+definition_1_1<-str_replace(definition_1_1, "isolate[:blank:]([:alnum:]|-)+", "")
+definition_1_1<-str_replace(definition_1_1, "str[:blank:]([:alnum:]|-)+", "")
+definition_1_1<-str_replace(definition_1_1, "strain[:blank:]([:alnum:]|-)+", "")
+definition_1_1<-str_replace(definition_1_1, "clone[:blank:]([:alnum:]|-)+", "")
+definition_1_1<-str_replace(definition_1_1, "clone clone[:blank:]([:alnum:]|-)+", "")
+#Quitar espacio y coma iniciales asi como ids alfanumericos(esto se hace recursivamente porque puede que a la primera no se alcance a quitar todos los ids si estan separados por muchos espacios, y ademas queremos evitar quitar info importante. )
+definition_1_1<-str_replace(definition_1_1, "ep add|ain|[:blank:]aff[:blank:]|fallax", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+definition_1_1<-str_replace(definition_1_1, "^([:digit:]|\\.)+[:blank:]", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+#definition_1_1<-str_replace(definition_1_1, "^[:upper:]+[:digit:]+[:upper:]*", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+definition_1_1<-str_replace(definition_1_1, "^[:digit:]+[:blank:]", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+#definition_1_1<-str_replace(definition_1_1, "^[:upper:]+[:digit:]+[:upper:]*", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+definition_1_1<-str_replace(definition_1_1, "^,", "")
+
+definition_1_1<-str_replace(definition_1_1, "^ep", "")
+#definition_1_1<-str_replace(definition_1_1, "^[:digit:]{3,}|^[:upper:] ", "")
+definition_1_1<-str_replace(definition_1_1, "[:digit:]{3,}", "")
+#definition_1_1<-str_replace(definition_1_1, "^[:upper:]+[:digit:]+[:upper:]*", "")
+definition_1_1<-str_replace(definition_1_1, ".*cytochrome", "cytochrome")
+#definition_1_1<-str_replace(definition_1_1, "^[:alpha:]+[:digit:]+[:alpha:]*", "")
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+#definition_1_1<-str_replace(definition_1_1, "^[:blank:]*[:digit:]+[:blank:]+", "")
+
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+
+definition_1_1<-trimws(definition_1_1, which = c("both"))
+definition_1_1<-str_replace(definition_1_1, "[:blank:]*[:digit:]+[:blank:]+", "")
+#definition_1_1<-str_replace(definition_1_1, "[:digit:]{3,}", "")
+definition_1_1<-str_replace(definition_1_1, "personalCulture|Collection of Phytopathogenic FungiUACH|personalJosHoubrakenDTO.*[:blank:]+", "")
+
+
+definition_1_2<-unique(definition_1_1)
+
+#este es el  de unique 41791 y la columna de definition_1 es unique 200,000 y cacho (solo quitando los nombres de especies)
+genbank_1$definition_2<-definition_1_1
+
+```
+
+
+```{r, echo=F, warning=F, message=F}
+#Extraer los genes que nos interesan.
+fungi_genbank<-genbank_1[genbank$kingdom=="Fungi",]
+metazoa_genbank<-genbank_1[genbank$kingdom=="Metazoa",]
+plantae_genbank<-genbank_1[genbank$kingdom=="Viridiplantae",]
+
+fungi_markersg<-unique(fungi_genbank$definition_2)
+metazoa_markersg<-unique(metazoa_genbank$definition_2)
+plantae_markersg<-unique(plantae_genbank$definition_2)
+
+fungi_geo_markers<-fungi_genbank[,c(1,2,7,8,12:14,27:30,37,38)]
+metazoa_geo_markers<-metazoa_genbank[,c(1,2,7,8,12:14,27:30,37,38)]
+plantae_geo_markers<-plantae_genbank[,c(1,2,7,8,12:14,27:30,37,38)]
+
+fungi_geo_markers$markers<-NA
+metazoa_geo_markers$markers<-NA
+plantae_geo_markers$markers<-NA
+
+#fungi
+fungi_geo_markers[which(grepl(" ITS([[:blank:]]|,)|internal transcribed spacer([[:blank:]]|,)", fungi_geo_markers$definition)),14]<-"ITS"
+                  
+fungi_geo_markers[which(grepl("ITS[:blank:]1|internal transcribed spacer 1| ITS1", fungi_geo_markers$definition)),14]<-"ITS1"
+
+
+fungi_geo_markers[which(grepl("ITS[:blank:]2|internal transcribed spacer 2| ITS2", fungi_geo_markers$definition)),14]<-with(fungi_geo_markers[which(grepl("ITS[:blank:]2|internal transcribed spacer 2| ITS2", fungi_geo_markers$definition)),], paste(markers, "ITS2", sep=","))
+
+#metazoa
+metazoa_geo_markers[which(grepl("CYTB|cytochrome b,)", metazoa_geo_markers$definition)),14]<-"CYTB"
+
+metazoa_geo_markers[which(grepl("COI|cytochrome oxidase subunit (1|I)([[:blank:]]|,)", metazoa_geo_markers$definition)),14]<-"COI"
+
+metazoa_geo_markers[which(grepl("COII|cytochrome oxidase subunit (2|II)([[:blank:]]|,)", metazoa_geo_markers$definition)),14]<-"COII"
+
+
+metazoa_geo_markers[which(grepl("COX1|COXI([[:blank:]]|\\)|,)|cytochrome c oxidase subunit (1|I)([[:blank:]]|,)", metazoa_geo_markers$definition)),14]<-"COX1"
+
+metazoa_geo_markers[which(grepl("COX2|COXII([[:blank:]]|\\)|,)|cytochrome c oxidase subunit (2|II)([[:blank:]]|,)", metazoa_geo_markers$definition)),14]<-with(metazoa_geo_markers[which(grepl("COX2|COXII([[:blank:]]|\\)|,)|cytochrome c oxidase subunit (2|II)([[:blank:]]|,)", metazoa_geo_markers$definition)),], paste(markers, "COX2", sep=","))
+
+#Plants
+plantae_geo_markers[which(grepl("chloroplast|cpDNA", plantae_geo_markers$definition)),14]<-"chloroplast"
+
+plantae_geo_markers[which(grepl("accD", plantae_geo_markers$definition)),14]<-with(plantae_geo_markers[which(grepl("accD", plantae_geo_markers$definition)),], paste(markers, "accD", sep=","))
+
+plantae_geo_markers[which(grepl("atp(A|B|E|F|H|I|l)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("atp(A|B|E|F|H|I|l)", plantae_geo_markers$definition)),], paste(markers, "atp_genes", sep=","))
+
+
+plantae_geo_markers[which(grepl("ccsA", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("ccsA", plantae_geo_markers$definition)),], paste(markers, "ccsA", sep=","))
+
+plantae_geo_markers[which(grepl("cemA", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("cemA", plantae_geo_markers$definition)),], paste(markers, "cemA", sep=","))
+
+plantae_geo_markers[which(grepl("clpP", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("clpP", plantae_geo_markers$definition)),], paste(markers, "clpP", sep=","))
+
+plantae_geo_markers[which(grepl("matK", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("matK", plantae_geo_markers$definition)),], paste(markers, "matK", sep=","))
+
+plantae_geo_markers[which(grepl("ndh(A|B|C|D|E|F|G|H|I|J|l|K)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("ndh(A|B|C|D|E|F|G|H|I|J|l|K)", plantae_geo_markers$definition)),], paste(markers, "ndh_genes", sep=","))
+
+
+
+plantae_geo_markers[which(grepl("psb(A|B|C|D|E|F|H|I|J|K|l|L|M|N|T|Z)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("psb(A|B|C|D|E|F|H|I|J|K|l|L|M|N|T|Z)", plantae_geo_markers$definition)),], paste(markers, "psb_genes", sep=","))
+
+
+plantae_geo_markers[which(grepl("rbcL", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rbcL", plantae_geo_markers$definition)),], paste(markers, "rbcL", sep=","))
+
+
+plantae_geo_markers[which(grepl("rpI(2|14|16|20|23|32|33|36)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rpI(2|14|16|20|23|32|33|36)", plantae_geo_markers$definition)),], paste(markers, "rpI_genes", sep=","))
+
+plantae_geo_markers[which(grepl("rpl(2|14|16|20|23|32|33|36)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rpl(2|14|16|20|23|32|33|36)", plantae_geo_markers$definition)),], paste(markers, "rpl_genes", sep=","))
+
+plantae_geo_markers[which(grepl("rpo(A|B|C|C1|C2)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rpo(A|B|C|C1|C2)", plantae_geo_markers$definition)),], paste(markers, "rpo_genes", sep=","))
+                                                                                                                     
+plantae_geo_markers[which(grepl("rps(2|3|4|7|8|11|12|14|15|16|18|19)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rps(2|3|4|7|8|11|12|14|15|16|18|19)", plantae_geo_markers$definition)),], paste(markers, "rps_genes", sep=","))
+
+plantae_geo_markers[which(grepl("rrn(4|4.5|5|16|23)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("rrn(4|4.5|5|16|23)", plantae_geo_markers$definition)),], paste(markers, "rrn_genes", sep=","))
+     
+plantae_geo_markers[which(grepl("trn(A|C|D|E|F|fM|G|H|I|K|L|l|M|N|P|Q|R|S|T|V|W|Y)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("trn(A|C|D|E|F|fM|G|H|I|K|L|l|M|N|P|Q|R|S|T|V|W|Y)", plantae_geo_markers$definition)),], paste(markers, "trn_genes", sep=","))
+  
+plantae_geo_markers[which(grepl("ycf(1|2|3)", plantae_geo_markers$definition)), 14]<-with(plantae_geo_markers[which(grepl("ycf(1|2|3)", plantae_geo_markers$definition)),], paste(markers, "ycf_genes", sep=","))
+
+
+plantae_geo_markers$markers<-gsub("^NA,", "", plantae_geo_markers$markers)
+fungi_geo_markers$markers<-gsub("^NA,", "", fungi_geo_markers$markers)
+metazoa_geo_markers$markers<-gsub("^NA", "", metazoa_geo_markers$markers)
+                                                                      
+```
+
+###Gráficas de información geográfica disponible por marcador.
+
+```{r, echo=F, warning=F, message=F}
+plantae_geo_markers$country_info<-NA
+plantae_geo_markers$estado_info<-NA
+plantae_geo_markers$region_info<-NA
+
+plantae_geo_markers[which(is.na(plantae_geo_markers$country)==T),15]<-FALSE
+plantae_geo_markers[which(is.na(plantae_geo_markers$country)==F),15]<-TRUE
+
+
+plantae_geo_markers[which(is.na(plantae_geo_markers$estado)==T),16]<-FALSE
+plantae_geo_markers[which(is.na(plantae_geo_markers$estado)==F),16]<-TRUE
+
+plantae_geo_markers[which(is.na(plantae_geo_markers$region)==T),17]<-FALSE
+plantae_geo_markers[which(is.na(plantae_geo_markers$region)==F),17]<-TRUE
+
+
+fungi_geo_markers$country_info<-NA
+fungi_geo_markers$estado_info<-NA
+fungi_geo_markers$region_info<-NA
+
+fungi_geo_markers[which(is.na(fungi_geo_markers$country)==T),15]<-FALSE
+fungi_geo_markers[which(is.na(fungi_geo_markers$country)==F),15]<-TRUE
+
+
+fungi_geo_markers[which(is.na(fungi_geo_markers$estado)==T),16]<-FALSE
+fungi_geo_markers[which(is.na(fungi_geo_markers$estado)==F),16]<-TRUE
+
+fungi_geo_markers[which(is.na(fungi_geo_markers$region)==T),17]<-FALSE
+fungi_geo_markers[which(is.na(fungi_geo_markers$region)==F),17]<-TRUE
+
+
+
+metazoa_geo_markers$country_info<-NA
+metazoa_geo_markers$estado_info<-NA
+metazoa_geo_markers$region_info<-NA
+
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$country)==T),15]<-FALSE
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$country)==F),15]<-TRUE
+
+
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$estado)==T),16]<-FALSE
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$estado)==F),16]<-TRUE
+
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$region)==T),17]<-FALSE
+metazoa_geo_markers[which(is.na(metazoa_geo_markers$region)==F),17]<-TRUE
+
+#latlon
+p_markers_latlon<-plantae_geo_markers%>%group_by(markers, latlon_info)%>%summarise(n())
+colnames(p_markers_latlon)<-c("markers", "latlon_info", "Num_seqs")
+
+p_latlon_plot1<-ggplot(p_markers_latlon[1:19,], aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores plantae 1")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_latlon_plot2<-ggplot(p_markers_latlon[19:38,], aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores plantae 2")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_latlon_plot3<-ggplot(p_markers_latlon[39:58,], aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores plantae 3")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_latlon_plot4<-ggplot(p_markers_latlon[59:76,], aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores plantae 4") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+m_markers_latlon<-metazoa_geo_markers%>%group_by(markers, latlon_info)%>%summarise(n())
+colnames(m_markers_latlon)<-c("markers", "latlon_info", "Num_seqs")
+
+m_latlon_plot<-ggplot(m_markers_latlon, aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1))+ xlab("Nombre del marcador")
+
+
+
+f_markers_latlon<-fungi_geo_markers%>%group_by(markers, latlon_info)%>%summarise(n())
+colnames(f_markers_latlon)<-c("markers", "latlon_info", "Num_seqs")
+
+f_latlon_plot<-ggplot(f_markers_latlon, aes(factor(markers), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordinadas por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+#estado
+p_markers_estado<-plantae_geo_markers%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(p_markers_estado)<-c("markers", "estado_info", "Num_seqs")
+
+p_estado_plot1<-ggplot(p_markers_estado[1:19,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 1")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot2<-ggplot(p_markers_estado[19:38,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 2")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot3<-ggplot(p_markers_estado[39:58,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por estado plantae 3")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot4<-ggplot(p_markers_estado[59:76,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 4") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+m_markers_estado<-metazoa_geo_markers%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(m_markers_estado)<-c("markers", "estado_info", "Num_seqs")
+
+m_estado_plot<-ggplot(m_markers_estado, aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+f_markers_estado<-fungi_geo_markers%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(f_markers_estado)<-c("markers", "estado_info", "Num_seqs")
+
+f_estado_plot<-ggplot(f_markers_estado, aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+
+#region
+p_markers_region<-plantae_geo_markers%>%group_by(markers, region_info)%>%summarise(n())
+colnames(p_markers_region)<-c("markers", "region_info", "Num_seqs")
+
+p_region_plot1<-ggplot(p_markers_region[1:19,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 1")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot2<-ggplot(p_markers_region[19:38,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 2")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot3<-ggplot(p_markers_region[39:58,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por estado plantae 3")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot4<-ggplot(p_markers_region[59:76,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 4") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+m_markers_region<-metazoa_geo_markers%>%group_by(markers, region_info)%>%summarise(n())
+colnames(m_markers_region)<-c("markers", "region_info", "Num_seqs")
+m_region_plot<-ggplot(m_markers_region, aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+f_markers_region<-fungi_geo_markers%>%group_by(markers, region_info)%>%summarise(n())
+colnames(f_markers_region)<-c("markers", "region_info", "Num_seqs")
+
+f_region_plot<-ggplot(f_markers_region, aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+```
+
+####Información disponible de latitud y longitud 
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+f_markers_latlon
+f_latlon_plot
+```
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+m_markers_latlon
+m_latlon_plot
+```
+
+#####Viridiplantae
+
+```{r}
+p_markers_latlon
+```
+
+```{r, echo=F, warning=F, message=F}
+#p_markers_latlon
+p_latlon_plot1
+p_latlon_plot2
+p_latlon_plot3
+p_latlon_plot4
+```
+
+####Información disponible de estado
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+f_markers_estado
+f_estado_plot
+```
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+m_markers_estado
+m_estado_plot
+```
+
+#####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+p_markers_estado
+
+p_estado_plot1
+p_estado_plot2
+p_estado_plot3
+p_estado_plot4
+```
+
+####Información disponible de región
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+f_markers_region
+f_region_plot
+```
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+m_markers_region
+m_region_plot
+```
+
+#####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+p_markers_region
+
+p_region_plot1
+p_region_plot2
+p_region_plot3
+p_region_plot4
+```
+
+###Gráficas de información geográfica disponible por marcador, casos en los que no hay información disponible de latitud-longitud. 
+
+```{r, echo=F, warning=F, message=F}
+#estado
+p_markers_estado_nl<-plantae_geo_markers[which(plantae_geo_markers$latlon_info==F),]%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(p_markers_estado_nl)<-c("markers", "estado_info", "Num_seqs")
+
+p_estado_plot1_nl<-ggplot(p_markers_estado_nl[1:19,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 1")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot2_nl<-ggplot(p_markers_estado_nl[19:38,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 2")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot3_nl<-ggplot(p_markers_estado_nl[39:58,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por estado plantae 3")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_estado_plot4_nl<-ggplot(p_markers_estado_nl[59:76,], aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores plantae 4") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+m_markers_estado_nl<-metazoa_geo_markers[which(metazoa_geo_markers$latlon_info==F),]%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(m_markers_estado_nl)<-c("markers", "estado_info", "Num_seqs")
+
+m_estado_plot_nl<-ggplot(m_markers_estado_nl, aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+f_markers_estado_nl<-fungi_geo_markers[which(fungi_geo_markers$latlon_info==F),]%>%group_by(markers, estado_info)%>%summarise(n())
+colnames(f_markers_estado_nl)<-c("markers", "estado_info", "Num_seqs")
+
+f_estado_plot_nl<-ggplot(f_markers_estado_nl, aes(factor(markers), Num_seqs, fill=estado_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+
+
+#region
+p_markers_region_nl<-plantae_geo_markers[which(plantae_geo_markers$latlon_info==F),]%>%group_by(markers, region_info)%>%summarise(n())
+colnames(p_markers_region_nl)<-c("markers", "region_info", "Num_seqs")
+
+p_region_plot1_nl<-ggplot(p_markers_region_nl[1:19,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 1")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot2_nl<-ggplot(p_markers_region_nl[19:38,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 2")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot3_nl<-ggplot(p_markers_region_nl[39:58,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por estado plantae 3")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+p_region_plot4_nl<-ggplot(p_markers_region_nl[59:76,], aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores plantae 4") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+m_markers_region_nl<-metazoa_geo_markers[which(metazoa_geo_markers$latlon_info==F),]%>%group_by(markers, region_info)%>%summarise(n())
+colnames(m_markers_region_nl)<-c("markers", "region_info", "Num_seqs")
+m_region_plot_nl<-ggplot(m_markers_region_nl, aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+f_markers_region_nl<-fungi_geo_markers[which(fungi_geo_markers$latlon_info==F),]%>%group_by(markers, region_info)%>%summarise(n())
+colnames(f_markers_region_nl)<-c("markers", "region_info", "Num_seqs")
+
+f_region_plot_nl<-ggplot(f_markers_region_nl, aes(factor(markers), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+
+```
+
+####Información disponible de estado (casos en los que no hay información de coordenadas).
+
+#####Fungi.
+```{r, echo=F, warning=F, message=F}
+f_markers_estado_nl
+f_estado_plot_nl
+```
+
+
+#####Metazoa
+```{r, echo=F, warning=F, message=F}
+m_markers_estado_nl
+m_estado_plot_nl
+```
+
+
+#####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+p_markers_estado_nl
+
+p_estado_plot1_nl
+p_estado_plot2_nl
+p_estado_plot3_nl
+p_estado_plot4_nl
+```
+
+####Información disponible de región (casos en los que no hay información de coordenadas).
+
+#####Fungi.
+```{r, echo=F, warning=F, message=F}
+f_markers_region_nl
+f_region_plot_nl
+```
+
+
+#####Metazoa
+```{r, echo=F, warning=F, message=F}
+m_markers_region_nl
+m_region_plot_nl
+```
+
+
+#####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+p_markers_region_nl
+
+p_region_plot1_nl
+p_region_plot2_nl
+p_region_plot3_nl
+p_region_plot4_nl
+```

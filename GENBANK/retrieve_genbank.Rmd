@@ -458,10 +458,6 @@ phyl_metplot
 ```
 
 
-
-```{r, warning=FALSE, message=FALSE}
-phyl_metplot2
-```
 Viridiplantae
 
 ```{r, message=F, echo=F, warning=FALSE}
@@ -488,7 +484,7 @@ Protista
 ```{r, message=F, echo=F, warning=FALSE}
 phyl_prot<-ggplot(data=king_phyl[king_phyl$kingdom=="Protista",], aes(x=phylum, y=num_seqs, fill=phylum))+
            geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Protista")
-View(king_phyl[which(king_phyl$kingdom=="Protista"),])
+king_phyl[which(king_phyl$kingdom=="Protista"),]
 ```
 
 ```{r phyl_prot, message=F, warning=F}
@@ -499,7 +495,7 @@ Archaea
 ```{r, echo=F, message=F, warning=FALSE}
 phyl_arc<-ggplot(data=king_phyl[king_phyl$kingdom=="Archaea",], aes(x=phylum, y=num_seqs, fill=phylum))+
            geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias Archaea")
-View(king_phyl[which(king_phyl$kingdom=="Archaea"),])
+king_phyl[which(king_phyl$kingdom=="Archaea"),]
 ```
 
 ```{r phyl_arc, message=F, warning=F}
@@ -515,9 +511,10 @@ Información geográfica
 
 ```{r}
 library(stringi)
+library(stringr)
 genbank<-mutate(genbank, estado_region=sapply(str_split(country, ":"), `[`, 2))
 
-estados<-c("Aguascalientes", "Baja California Sur", "Campeche", "Chihuahua", "Ciudad de México", "CDMX", "Cd. de México" , "D.F.", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero",  "Hidalgo", "Jalisco", "Estado de México", "Edo. Mex.", "Edo. de México", "Michoacán" , "Morelos",  "Nayarit",  "Nuevo León", "N. León", "Oaxaca", "Puebla",  "Querétaro", "Quintana Roo", "Q. Roo", "San Luis Potosí",  "Sinaloa","Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz","Yucatán",  "Zacatecas", "Baja California") 
+estados<-c("Aguascalientes", "Baja California Sur", "Campeche", "Chihuahua", "Ciudad de México", "CDMX", "Cd. de México" ,"Ciudad de Mexico", "Cd. de Mexico", "D.F.", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero",  "Hidalgo", "Jalisco", "Estado de México","Estado de Mexico", "Edo. de Mexico", "Edo. Mex.", "Edo. de México", "Michoacán" ,"Michoacan", "Morelos",  "Nayarit",  "Nuevo León", "N. León", "Nuevo Leon", "N. Leon",  "Oaxaca", "Puebla",  "Querétaro", "Queretaro",  "Quintana Roo", "Q. Roo", "San Luis Potosí", "San Luis Potosi",  "Sinaloa","Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz","Yucatán", "Yucatan", "Zacatecas", "Baja California") 
 
 
 #ojo baja california debe quedar al final, para que primero pregunte si es baja california sur, y si no es ya siga hasta baja california, si baja california iba antes todos los de baja california sur los ponia como baja califronia. 
@@ -539,15 +536,118 @@ genbank<-mutate(genbank, region=str_replace(estado_region, estado, " "))
 
 
 
-
 ```
 
 
+#Taxonomy Viridiplantae 
 
-
-#Filtro por phylum 
+Arreglar la taxonomía para que quede igual que la de Viridiplantae en BOLD
 ```{r}
-genbank_fil<-genbank[genbank$phylum=="Arthropoda" | genbank$phylum="Chordata" ,]
+
+plant_g<-unique(genbank[which(genbank$kingdom=="Viridiplantae"), 19:26])
+plant_bold <-read_csv("plants_bold.csv")
+plant_bold[2000,]<-NA
+```
+Empiezo haciendo los matches por nombre de la especie:
+
+```{r}
+plant_matches<-match(plant_g$Species_name, plant_bold$species_name)
+#plant_matches
+plant_matches[which(is.na(plant_matches))]<-2000
+plant_all<-cbind(plant_g,plant_bold[plant_matches,])
+
+```
+Tomamos los que no tenian el mismo nombre de especie y ahora hacemos con genus
+```{r}
+plant_genus_b<-unique(plant_bold[,c(2:7)])
+plant_matches_g<-match(plant_all$genus, plant_genus_b$genus_name)
+plant_matches_g[which(is.na(plant_matches_g))]<-2000
+plant_matches_g<-plant_matches_g[which(is.na(plant_all$phylum_name))]
+plant_all[which(is.na(plant_all$phylum_name)),10:15]<-plant_genus_b[plant_matches_g,1:6]
 ```
 
 
+Ahora subfamilia:
+
+```{r}
+plant_subf_b<-unique(plant_bold[,c(2:6)])
+plant_matches_sub<-match(plant_all$subfamily, plant_subf_b$subfamily_name)
+plant_matches_sub[which(is.na(plant_matches_sub))]<-2000
+plant_matches_sub<-plant_matches_sub[which(is.na(plant_all$phylum_name))]
+plant_all[which(is.na(plant_all$phylum_name)),10:14]<-plant_subf_b[plant_matches_sub,1:5]
+```
+
+
+Ahora familia:
+
+```{r}
+plant_fam_b<-unique(plant_bold[,c(2:5)])
+plant_matches_fam<-match(plant_all$family, plant_fam_b$family_name)
+plant_matches_fam[which(is.na(plant_matches_fam))]<-2000
+plant_matches_fam<-plant_matches_fam[which(is.na(plant_all$phylum_name))]
+plant_all[which(is.na(plant_all$phylum_name)),10:13]<-plant_fam_b[plant_matches_fam,1:4]
+```
+
+Ahora orden:
+
+```{r}
+plant_or_b<-unique(plant_bold[,c(2:4)])
+plant_matches_or<-match(plant_all$order, plant_or_b$order_name)
+plant_matches_or[which(is.na(plant_matches_or))]<-2000
+plant_matches_or<-plant_matches_or[which(is.na(plant_all$phylum_name))]
+plant_all[which(is.na(plant_all$phylum_name)),10:12]<-plant_or_b[plant_matches_or,1:3]
+```
+
+Ahora clase:
+
+```{r}
+plant_cla_b<-unique(plant_bold[,c(2:3)])
+plant_matches_cla<-match(plant_all$class, plant_or_b$class_name)
+plant_matches_cla[which(is.na(plant_matches_cla))]<-2000
+plant_matches_cla<-plant_matches_cla[which(is.na(plant_all$phylum_name))]
+plant_all[which(is.na(plant_all$phylum_name)),10:11]<-plant_cla_b[plant_matches_cla,1:2]
+```
+
+
+Saco las que aún no tienen phylum:
+Solo son dos y las busque en BOLD y no son ni magnolyophyta ni pinophyta, entonces así lo dejé.
+```{r}
+plant_sf<-plant_all[which(is.na(plant_all$phylum_name)),]
+
+```
+
+Agregar la taxonomia a los datos de genbank
+```{r}
+genbank$phyl_bold<-NA
+genbank$class_bold<-NA
+genbank$order_bold<-NA
+genbank$family_bold<-NA
+genbank$subfamily_bold<-NA
+genbank$genus_bold<-NA
+
+plants<-genbank[which(genbank$kingdom=="Viridiplantae"),]
+matched_plants<-match(plants$Species_name, plant_all$Species_name)
+plants[,31:36]<-plant_all[matched_plants, 10:15]
+not_plants<-genbank[-(which(genbank$kingdom=="Viridiplantae")),]
+genbank_plant<-rbind(not_plants, plants)
+```
+
+
+Plantas por phylum en viridiplantae, taxonomía BOLD
+
+```{r}
+plant_phyl_cla<-genbank_plant%>%group_by(phyl_bold, class_bold)%>%summarise(n())
+colnames(plant_phyl_cla)<-c("phylum_bold", "class_bold", "num_seqs")
+plant_phyl_cla
+plant_phyl_plot<-ggplot(data=plant_phyl_cla[-14,], aes(x=phylum_bold, y=num_seqs, fill=phylum_bold))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Num. de secuencias por phylum en Viridiplantae")
+plant_phyl_plot
+
+```
+
+
+Filtrar a los phylum que queremos
+```{r}
+data_filtered<-genbank_plant %>% filter(!(is.na(Species_name))) %>% filter (phyl_bold=="Magnoliophyta" | phyl_bold=="Pinophyta" | phylum=="Chordata" | phylum=="Arthropoda" | phylum=="Ascomycota" | phylum=="Basidiomycota")
+write_delim(data_filtered, "GENBANK_data_ph.csv", delim="|")
+```

@@ -1,0 +1,60 @@
+---
+title: "README"
+author: "Lorena Malpica"
+date: "17 de agosto de 2018"
+output: html_document
+---
+
+Nota: no todos los archivos de datos están en git porque algunos eran muy pesados.
+##Scripts
+1)retrieve_genbank.Rmd 
+   Se describen los pasos para obtener las secuencias a través de la herramienta *NCBI entrez utilities*, que se corre en Shell. 
+   Se corrigen y se limpian esos archivos
+   Se sacan los ids de los taxones 
+   Se lee el archivo infotax_ncbi.tsv y se acomodan las columnas para que los campos faltantes estén las columnas correspondientes
+   Se agregan los reinos a los que no tengan, todo esto se escribe en el archivo infotax_ncbi.csv
+   Se agregan las columnas con la información taxonómica recuperada en infotax_ncbi.csv, con esto se genera el archivo genbank_complete.csv
+   Exploración de los datos 
+   Información geográfica:
+     Se procesa el campo country, para dividirlo en país, estados, región. 
+     Se analiza que grupos de organismos tienen información geográfica
+   Se agrega información taxonómica a las plantas para unificarla con la clasificación que aparece en BOLD
+   Se filtran los datos y se escribe un nuevo csv (GENBANK_data_ph.csv) tomando solo los phylum que nos interesan.
+2)fileprocessing.sh
+  filtra los ids del archivo tax_genbank para quitar los que no son de NCBI y los acomoda en una sola línea separada por comas. 
+3)retrieve_infotax_genebankall.sh
+  A partir de los tax id de genbank se obtiene la info taxonómica de todas las especies recuperadas, en formato tsv. (Genera archivo infotax_ncbi.tsv)
+4) EDA_genbank_pt2.Rmd 
+    Se trabaja a partir del archivo GENBANK_data_ph.csv:
+      Se excluyen los organismos modelo y homo sapiens.
+      Se grafican las secuencias que hay para cada clase dentro de cada uno de los phylum. 
+      Se filtran las secuencias a que en el campo definition, tengan información relacionada a cyt-b o a marcardores del cloroplasto e ITS. Genera el archivo GENBANK_data_m.csv.
+      Se hace una gráfica que indica el número de secuencias que tienen los distintos tipos de información geográfica que existen en los datos. Se corrigen a mano las clases faltantes en el phylum Chordata.
+      Tambien se va modificando el campo definición para que tenga la información más resumida, y se hacen gráficas de la información geográfica disponible. 
+5)report1_genbank.Rmd
+    Reporte resumido de la información geográfica disponible, para toda la base de datos y solo para las entradas que no tienen latitud y longitud.  
+##Files
+Los archivos recabados se juntaron en genbank_euk.tsv
+De ahí se filtró para quitar todo lo que tuviera USA en columna país.
+Se dividió este archivo en 3 según el número de columnas:
+
+genbank_filtered14.tsv
+genbank_filtered15.tsv
+genbank_filtered16.tsv
+
+Se arreglan se vuelven a juntar y se escribe el archivo:
+
+genbank_euk.csv
+
+Se sacan los ids de taxones de genbank y se escriben en el archivo:
+
+tax_genbank
+
+infotax_ncbi.tsv : archivo que tiene la información taxonómica, recuperada a partir de los ids del archivo tax_genbank
+infotax_ncbi.csv : archivo con la infotaxonómica ordenada en las columnas correctas y agregando los reinos a los campos faltantes
+genbank_complete.csv : archivo ya con toda la info taxonomica en formato correcto
+latlon_genbank.tsv: archivo que dice cuantas secuencias de cada reino cuentan con información acerca de latitud y longitud
+plants_bold.csv: datos de plantas de BOLD
+GENBANK_data_ph.csv: datos filtrados a los phylum de interés. 
+GENBANK_data_m.csv: datos filtrados a que contengan los marcadores genéticos que nos interesan. 
+GENBANK_GEO.tsv: Archivo de información geográfica de GENBANK, se envió a los geógrafos para hacer la primera validación de los datos
