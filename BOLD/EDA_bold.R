@@ -1,10 +1,10 @@
-setwd( "/home/lmalpica/Desktop/CONABIO")
+setwd( "/home/lmalpica/Desktop/CONABIO/BOLD")
 library(readr)
 library(dplyr)
 library(tidyr)
 
 #Esto se corre 1 sola vez para limpiar los datos y generar un csv con los datos corregidos 
-bold_data <- read_delim("~/Desktop/CONABIO/bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+bold_data <- read_delim("./bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 bold_data<-as.data.frame(bold_data)
 
 
@@ -18,6 +18,7 @@ bold_data[bold_data$phylum_name=="Phoronida",10]<-"Phoroniformea"
 
 
 #importar datos con los reinos 
+
 phylumid_kingdom <- read_delim("~/Desktop/CONABIO/phylumid_kingdom.tsv",  "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
 colnames(phylumid_kingdom)<-c("phylum_id", "phylum_name", "kingdom")
 #Actinobacteria esta repetida porque al extraer los ids, NCBI lo regresa dos veces con ids diferentes uno en el que se refieren a

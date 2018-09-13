@@ -337,7 +337,7 @@ Número de secuencias por reino (sin nombre de la especie):
 ```{r,  warning=FALSE, message=FALSE}
 nosp_king<-nospecies_phyl_king%>%group_by(Kingdom)%>%summarise(sum(Num_seqs))
 colnames(nosp_king)<-c("kingdom", "num_seqs")
-king_seqs
+nosp_king
 ```
 
 
@@ -379,6 +379,8 @@ reinos_latlon_plot2<-ggplot(data_latlon_kin[-(7:8),], aes(factor(kingdom), num_s
 ```{r reinos_latlon_plot, message=FALSE, warning=FALSE}
 reinos_latlon_plot
 ```
+
+
 ```{r reinos_latlon_plot2, message=FALSE, warning=FALSE}
 reinos_latlon_plot2
 ```
@@ -409,24 +411,6 @@ colnames(ncoo_king_prov)<-c("kingdom", "province_state_info", "num_seqs")
 ncoo_king_prov
 ```
 
-```{r,  warning=FALSE, message=FALSE}
-
-library(ggplot2)
-library(plotly)
-library(grid)
-library(gridExtra)
-
-prov_kin_plot<-ggplot(ncoo_king_prov, aes(x=kingdom, y=num_seqs, fill=province_state_info)) +
-     ggtitle("Observaciones sin coordenadas, datos del estado.") +
-     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
-```
-
-
-```{r prov_kin_plot, echo=FALSE, warning=FALSE}
-prov_kin_plot
-```
-
-
 Datos de region.
 ```{r, warning=FALSE, message=FALSE}
 ncoo_phylkin_reg<-bold_nlatlon%>% group_by(phylum_name, kingdom, region_info) %>% summarise(n())
@@ -435,28 +419,6 @@ ncoo_king_reg<-bold_nlatlon%>%group_by(kingdom, region_info)%>%summarise(n())
 colnames(ncoo_king_reg)<-c("kingdom", "region_info", "num_seqs")
 ncoo_king_reg
 ```
-
-```{r,  warning=FALSE, message=FALSE}
-
-library(ggplot2)
-library(plotly)
-library(grid)
-library(gridExtra)
-
-reg_kin_plot<-ggplot(ncoo_king_reg, aes(x=kingdom, y=num_seqs, fill=region_info)) +
-     ggtitle("Observaciones sin coordenadas, datos de la región") +
-     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
-```
-
-
-```{r reg_kin_plot, echo=FALSE, warning=FALSE}
-reg_kin_plot
-```
-
-
-
-
-
 Datos de sector.
 ```{r, warning=FALSE, message=FALSE}
 ncoo_phylkin_sec<-bold_nlatlon%>% group_by(phylum_name, kingdom, sector_info) %>% summarise(n())
@@ -466,22 +428,8 @@ colnames(ncoo_king_sec)<-c("kingdom", "sector_info", "num_seqs")
 ncoo_king_sec
 ```
 
-```{r,  warning=FALSE, message=FALSE}
-
-library(ggplot2)
-library(plotly)
-library(grid)
-library(gridExtra)
-
-sec_kin_plot<-ggplot(ncoo_king_sec, aes(x=kingdom, y=num_seqs, fill=sector_info)) +
-     ggtitle("Observaciones sin coordenadas, datos del sector") +
-     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
-```
 
 
-```{r sec_kin_plot, echo=FALSE, warning=FALSE}
-sec_kin_plot
-```
 Datos del sitio exacto.
 ```{r, warning=FALSE, message=FALSE}
 ncoo_phylkin_exsit<-bold_nlatlon%>% group_by(phylum_name, kingdom, exactsite_info) %>% summarise(n())
@@ -491,23 +439,38 @@ colnames(ncoo_king_exsit)<-c("kingdom", "exactsite_info", "num_seqs")
 ncoo_king_exsit
 ```
 
+
+Plots informacion geografica
+
 ```{r,  warning=FALSE, message=FALSE}
 
 library(ggplot2)
 library(plotly)
 library(grid)
 library(gridExtra)
+prov_kin_plot<-ggplot(ncoo_king_prov, aes(x=kingdom, y=num_seqs, fill=province_state_info)) +
+     ggtitle("Observaciones sin coordenadas, datos del estado.") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
 
+sec_kin_plot<-ggplot(ncoo_king_sec, aes(x=kingdom, y=num_seqs, fill=sector_info)) +
+     ggtitle("Observaciones sin coordenadas, datos del sector") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
 exsit_kin_plot<-ggplot(ncoo_king_exsit, aes(x=kingdom, y=num_seqs, fill=exactsite_info)) +
      ggtitle("Observaciones sin coordenadas, datos del sitio exacto") +
      geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
+reg_kin_plot<-ggplot(ncoo_king_reg, aes(x=kingdom, y=num_seqs, fill=region_info)) +
+     ggtitle("Observaciones sin coordenadas, datos de la región") +
+     geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90))
 ```
 
+Filtro para trabajo de distribución geográfica (por phylum) y data frame de datos taxonómicos, para plantas. 
 
-```{r exsit_kin_plot, echo=FALSE, warning=FALSE}
-exsit_kin_plot
+```{r, warning=F, message=F}
+plant_b<-unique(bold_data[bold_data$kingdom=="Viridiplantae", c(10,12,14,16,18,20,22,81)])
+write.csv(plant_b, "plants_bold.csv")
+data_filtered<-bold_data %>% filter(!(is.na(species_name))) %>% filter (phylum_name=="Magnoliophyta" | phylum_name=="Pinophyta" | phylum_name=="Chordata" | phylum_name=="Arthropoda" | phylum_name =="Ascomycota" | phylum_name=="Basidiomycota")
+write_csv(data_filtered, "BOLD_data_ph.csv")
 ```
-
 
 
 

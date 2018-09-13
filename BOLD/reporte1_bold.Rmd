@@ -1,0 +1,463 @@
+---
+title: "Reporte información geográfica disponible BOLD"
+author: "Lorena Malpica"
+date: "2 de septiembre de 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+###Se trabaja únicamente con los phylum seleccionados:
+
+Metazoa: Chordata y Arthropoda
+
+Fungi: Basidiomycota y Ascomycota
+
+Viridiplantae: Magnoliophyta y Pinophyta
+
+```{r, warning=F, message=F, echo=F}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(magrittr)
+bold<-read_csv("./BOLD_data_m.csv")
+
+```
+
+
+```{r, warning=F, message=F, echo=F}
+#Marcadores BOLD
+#Markers dictionary
+plant_markersb<-unique(bold[bold$kingdom=="Viridiplantae", 70])
+met_markersb<-unique(bold[bold$kingdom=="Metazoa", 70])
+fungi_markersb<-unique(bold[bold$kingdom=="Fungi", 70])
+
+bold_metazoa<-bold[bold$kingdom=="Metazoa",]
+bold_fungi<-bold[bold$kingdom=="Fungi",]
+bold_plant<-bold[bold$kingdom=="Viridiplantae",]
+
+bold_fungi_m<-filter(bold_fungi, grepl('ITS|ITS1|ITS', markercode))
+bold_plant_m<-bold_plant[!(is.na(bold_plant$markercode)),]
+bold_meta_m<-filter(bold_metazoa, grepl('COI|COX|CYTB', markercode))
+```
+
+
+###Gráficas de información geográfica disponible por marcador.
+
+```{r, warning=F, message=F, echo=F}
+#fungi
+bold_f_markers_latlon<-bold_fungi_m%>%group_by(markercode, latlon_info)%>% summarise(n())
+colnames(bold_f_markers_latlon)<-c("markercode", "latlon_info", "Num_seqs")
+
+bold_f_markers_province<-bold_fungi_m%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_f_markers_province)<-c("markercode", "province_info", "Num_seqs")
+
+bold_f_markers_region<-bold_fungi_m%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_f_markers_region)<-c("markercode", "region_info", "Num_seqs")
+
+bold_f_markers_sector<-bold_fungi_m%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_f_markers_sector)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_f_markers_site<-bold_fungi_m%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_f_markers_site)<-c("markercode", "site_info", "Num_seqs")
+
+
+fb_latlon_plot<-ggplot(bold_f_markers_latlon, aes(factor(markercode), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordenadas por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_province_plot<-ggplot(bold_f_markers_province, aes(factor(markercode), Num_seqs, fill=province_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin province por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_region_plot<-ggplot(bold_f_markers_region, aes(factor(markercode), Num_seqs, fill=region_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_sector_plot<-ggplot(bold_f_markers_sector, aes(factor(markercode), Num_seqs, fill=sector_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_site_plot<-ggplot(bold_f_markers_site, aes(factor(markercode), Num_seqs, fill=site_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exacto por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+#metazoa
+
+bold_m_markers_latlon<-bold_meta_m%>%group_by(markercode, latlon_info)%>% summarise(n())
+colnames(bold_m_markers_latlon)<-c("markercode", "latlon_info", "Num_seqs")
+
+bold_m_markers_province<-bold_meta_m%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_m_markers_province)<-c("markercode", "province_info", "Num_seqs")
+
+bold_m_markers_region<-bold_meta_m%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_m_markers_region)<-c("markercode", "region_info", "Num_seqs")
+
+bold_m_markers_sector<-bold_meta_m%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_m_markers_sector)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_m_markers_site<-bold_meta_m%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_m_markers_site)<-c("markercode", "site_info", "Num_seqs")
+
+mb_latlon_plot<-ggplot(bold_m_markers_latlon, aes(factor(markercode), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordenadas por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_province_plot<-ggplot(bold_m_markers_province, aes(factor(markercode), Num_seqs, fill=province_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado o provincia por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_region_plot<-ggplot(bold_m_markers_region, aes(factor(markercode), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin región por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_sector_plot<-ggplot(bold_m_markers_sector, aes(factor(markercode), Num_seqs, fill=sector_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_site_plot<-ggplot(bold_m_markers_site, aes(factor(markercode), Num_seqs, fill=site_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exacto por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+#plantae
+
+bold_p_markers_latlon<-bold_plant_m%>%group_by(markercode, latlon_info)%>% summarise(n())
+colnames(bold_p_markers_latlon)<-c("markercode", "latlon_info", "Num_seqs")
+
+bold_p_markers_province<-bold_plant_m%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_p_markers_province)<-c("markercode", "province_info", "Num_seqs")
+
+bold_p_markers_region<-bold_plant_m%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_p_markers_region)<-c("markercode", "region_info", "Num_seqs")
+
+bold_p_markers_sector<-bold_plant_m%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_p_markers_sector)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_p_markers_site<-bold_plant_m%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_p_markers_site)<-c("markercode", "site_info", "Num_seqs")
+
+pb_latlon_plot<-ggplot(bold_p_markers_latlon, aes(factor(markercode), Num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin coordenadas por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_province_plot<-ggplot(bold_p_markers_province, aes(factor(markercode), Num_seqs, fill=province_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado o provincia por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_region_plot<-ggplot(bold_p_markers_region, aes(factor(markercode), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin región por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_sector_plot<-ggplot(bold_p_markers_sector, aes(factor(markercode), Num_seqs, fill=sector_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_site_plot<-ggplot(bold_p_markers_site, aes(factor(markercode), Num_seqs, fill=site_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exactor por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+```
+####Información disponible de latitud y longitud 
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_latlon
+fb_latlon_plot
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_latlon
+mb_latlon_plot
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_latlon
+pb_latlon_plot
+```
+
+####Información disponible de estado o provincia
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_province
+fb_province_plot
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_province
+mb_province_plot
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_province
+pb_province_plot
+```
+
+####Información disponible de región
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_region
+fb_region_plot
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_region
+mb_region_plot
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_region
+pb_region_plot
+```
+
+####Información disponible de sector
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_sector
+fb_sector_plot
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_sector
+mb_sector_plot
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_sector
+pb_sector_plot
+```
+
+
+####Información disponible de sitio exacto
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_site
+fb_site_plot
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_site
+mb_site_plot
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_site
+pb_site_plot
+```
+
+###Gráficas de información geográfica disponible por marcador, casos en los que no hay información disponible de latitud-longitud. 
+
+```{r, warning=F, message=F, echo=F}
+#fungi
+bold_f_markers_province_nl<-bold_fungi_m[which(bold_fungi_m$latlon_info==F),]%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_f_markers_province_nl)<-c("markercode", "province_info", "Num_seqs")
+
+bold_f_markers_region_nl<-bold_fungi_m[which(bold_fungi_m$latlon_info==F),]%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_f_markers_region_nl)<-c("markercode", "region_info", "Num_seqs")
+
+bold_f_markers_sector_nl<-bold_fungi_m[which(bold_fungi_m$latlon_info==F),]%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_f_markers_sector_nl)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_f_markers_site_nl<-bold_fungi_m[which(bold_fungi_m$latlon_info==F),]%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_f_markers_site_nl)<-c("markercode", "site_info", "Num_seqs")
+
+
+
+fb_province_plot_nl<-ggplot(bold_f_markers_province_nl, aes(factor(markercode), Num_seqs, fill=province_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin province por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_region_plot_nl<-ggplot(bold_f_markers_region_nl, aes(factor(markercode), Num_seqs, fill=region_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin region por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_sector_plot_nl<-ggplot(bold_f_markers_sector_nl, aes(factor(markercode), Num_seqs, fill=sector_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+fb_site_plot_nl<-ggplot(bold_f_markers_site_nl, aes(factor(markercode), Num_seqs, fill=site_info)) + geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exacto por marcadores Fungi")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+#metazoa
+
+
+bold_m_markers_province_nl<-bold_meta_m[which(bold_meta_m$latlon_info==F),]%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_m_markers_province_nl)<-c("markercode", "province_info", "Num_seqs")
+
+bold_m_markers_region_nl<-bold_meta_m[which(bold_meta_m$latlon_info==F),]%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_m_markers_region_nl)<-c("markercode", "region_info", "Num_seqs")
+
+bold_m_markers_sector_nl<-bold_meta_m[which(bold_meta_m$latlon_info==F),]%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_m_markers_sector_nl)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_m_markers_site_nl<-bold_meta_m[which(bold_meta_m$latlon_info==F),]%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_m_markers_site_nl)<-c("markercode", "site_info", "Num_seqs")
+
+
+mb_province_plot_nl<-ggplot(bold_m_markers_province_nl, aes(factor(markercode), Num_seqs, fill=province_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado o provincia por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_region_plot_nl<-ggplot(bold_m_markers_region_nl, aes(factor(markercode), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin región por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_sector_plot_nl<-ggplot(bold_m_markers_sector_nl, aes(factor(markercode), Num_seqs, fill=sector_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+mb_site_plot_nl<-ggplot(bold_m_markers_site_nl, aes(factor(markercode), Num_seqs, fill=site_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exacto por marcadores Metazoa")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+#plantae
+
+bold_p_markers_province_nl<-bold_plant_m[which(bold_plant_m$latlon_info==F),]%>%group_by(markercode, provincestate_info)%>% summarise(n())
+colnames(bold_p_markers_province_nl)<-c("markercode", "province_info", "Num_seqs")
+
+bold_p_markers_region_nl<-bold_plant_m[which(bold_plant_m$latlon_info==F),]%>%group_by(markercode, region_info)%>% summarise(n())
+colnames(bold_p_markers_region_nl)<-c("markercode", "region_info", "Num_seqs")
+
+bold_p_markers_sector_nl<-bold_plant_m[which(bold_plant_m$latlon_info==F),]%>%group_by(markercode, sector_info)%>% summarise(n())
+colnames(bold_p_markers_sector_nl)<-c("markercode", "sector_info", "Num_seqs")
+
+bold_p_markers_site_nl<-bold_plant_m[which(bold_plant_m$latlon_info==F),]%>%group_by(markercode, exactsite_info)%>% summarise(n())
+colnames(bold_p_markers_site_nl)<-c("markercode", "site_info", "Num_seqs")
+
+pb_province_plot_nl<-ggplot(bold_p_markers_province_nl, aes(factor(markercode), Num_seqs, fill=province_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin estado o provincia por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_region_plot_nl<-ggplot(bold_p_markers_region_nl, aes(factor(markercode), Num_seqs, fill=region_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin región por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_sector_plot_nl<-ggplot(bold_p_markers_sector_nl, aes(factor(markercode), Num_seqs, fill=sector_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sector por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+
+pb_site_plot_nl<-ggplot(bold_p_markers_site_nl, aes(factor(markercode), Num_seqs, fill=site_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Datos con/sin sitio exactor por marcadores Viridiplantae")  + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("Nombre del marcador")
+```
+
+####Información disponible de estado o provincia
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_province_nl
+fb_province_plot_nl
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_province_nl
+mb_province_plot_nl
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_province_nl
+pb_province_plot_nl
+```
+
+####Información disponible de región
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_region_nl
+fb_region_plot_nl
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_region_nl
+mb_region_plot_nl
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_region_nl
+pb_region_plot_nl
+```
+
+####Información disponible de sector
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_sector_nl
+fb_sector_plot_nl
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_sector_nl
+mb_sector_plot_nl
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_sector_nl
+pb_sector_plot_nl
+```
+
+
+####Información disponible de sitio exacto
+
+#####Fungi
+
+```{r, echo=F, warning=F, message=F}
+bold_f_markers_site_nl
+fb_site_plot_nl
+```
+
+
+#####Metazoa
+
+```{r, echo=F, warning=F, message=F}
+bold_m_markers_site_nl
+mb_site_plot_nl
+```
+
+####Viridiplantae
+
+```{r, echo=F, warning=F, message=F}
+bold_p_markers_site_nl
+pb_site_plot_nl
+```
