@@ -1,0 +1,126 @@
+Instructions to clean the data downloaded from Genbank
+
+The starting point for this script is the file genbank_euk.tsv, located at the folder /data/genbank. 
+
+1)Filter out the data that doesn't have an annotation for Mexico as country. These commands are run on shell and have to be run inside the folder /data/genbank/
+
+```
+cat genbank_euk.tsv | grep "Mexico" > genbank_euk_Mexico1.tsv
+cat  genbank_euk_Mexico1.tsv | grep -v "New Mexico" > genbank_euk_Mexico2.tsv
+cat genbank_euk_Mexico2.tsv | grep -v "USA" > genbank_euk_Mexico.tsv  
+rm genbank_euk_Mexico1.tsv genbank_euk_Mexico2.tsv
+```
+
+Check column number in the data:
+
+```
+cat genbank_euk_Mexico.tsv | awk -F "\t" '{print NF}' | sort | uniq
+```
+
+There are discrepancies in the data regarding the number of columns, there should be 15 columns per row, with the following fields:
+
+
+1) Accession version
+2)Accession
+3)Locus
+4)Sequence length 
+5)Molecule type
+6)Sequence
+7)Definition
+8)Organism
+9)Taxonomic Information
+10)Organism
+11)Molecule type
+12)Country
+13)Latitude and longitude 
+14) Altitude
+15)Taxonomy id
+
+A subset of the data has an extra column, BOLD ID, which is conserved.
+To fix the discrepancies, first the data was separated into three different sets, each with a different number of columns.
+
+```
+cat genbank_euk_Mexico.tsv | awk -F "\t" '{if (NF==14) print $0 }' > genbank_14.tsv 
+cat genbank_euk_Mexico.tsv | awk -F "\t" '{if (NF==15) print $0 }' > genbank_15.tsv
+cat genbank_euk_Mexico.tsv | awk -F "\t" '{if (NF==16) print $0 }' > genbank_16.tsv 
+
+```
+
+Fix the data with 14 columns:
+
+```{r, warning=FALSE, message=FALSE}
+library(readr)
+gb_14 <- read_delim("../data/genbank/genbank_14.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+gb_14_1<-gb_14[,1:5]
+#Add the missing column and fill it with NA
+gb_14_1$sequence<-NA
+gb_1<-cbind(gb_14_1, gb_14[,6:14])
+gb_1$bold_id<-NA
+
+```
+
+Fix the data with 16 columns:
+
+```{r, warning=FALSE, message=FALSE}
+gb_16 <- read_delim("../data/genbank/genbank_16.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+
+ 
+bold_id<-gb_16[,15]
+gb_2<-cbind(gb_16[,-15], bold_id)
+
+```
+
+Import data with 15 columns 
+
+```{r, warning=FALSE, message=FALSE}
+gb_15 <- read_delim("../data/genbank/genbank_15.tsv", 
+                            "\t", escape_double = FALSE, col_names = FALSE, 
+                            trim_ws = TRUE)
+gb_15$bold_id<-NA
+```
+Join data.
+```{r, warning=FALSE, message=FALSE}
+cnames<-c("accession_version",
+"accession",
+"locus",
+"seq_len",
+"mol_type",
+"sequence",
+"definition",
+"organism",
+"taxonomy",
+"source_organism",
+"molecule_origin",
+"country",
+"lat-lon",
+"altitude",
+"tax_id",
+"bold_id"
+)
+colnames(gb_1)<-cnames
+colnames(gb_2)<-cnames
+colnames(gb_15)<-cnames
+
+gb<-rbind(gb_1, gb_2, gb_15)
+```
+
+```{r, warning=F, message=F}
+write_csv(gb, "../data/genbank/genbank_euk.csv")
+```
+
+
+Case 
+2175846	687269	Colletotrichum cliviicola	kingdom	Fungi	phylum	Ascomycota	class	Sordariomycetes	order	Glomerellales	family	Glomerellaceae	genus	Colletotrichum
+Deje el id 2175846 porque con el otro aparecen 2 ids en vez de 1 , lo corregi  el archivo genbank1805.csv
+Lo mismo paso con: 
+1659837	45150	Exserohilum rostratum	kingdom	Fungi	phylum	Ascomycota	class	Dothideomycetes	order	Pleosporales	family	Pleosporaceae	genus	Exserohilum
+
+```
+ sed 's/taxon:687269/taxon:2175846/g' genbank_euk.csv > genbank_euk2.csv
+ sed 's/taxon:45150/taxon:1659837/g' genbank_euk2.csv > genbank_euk.csv
+ rm genbank_euk2.csv
+```

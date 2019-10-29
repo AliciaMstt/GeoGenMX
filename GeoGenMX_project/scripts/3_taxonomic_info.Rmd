@@ -1,0 +1,236 @@
+---
+title: "3_taxonomic_info"
+output: html_document
+---
+```{r, warning=FALSE, message=FALSE}
+library(readr)
+genbank_euk <- read_csv("../data/genbank/genbank_euk.csv")
+```
+
+
+The taxonomic information  is retrieved from the file (the taxon id and are stored in a list removing repeated elements). The list is saved in a plain text file. 
+
+```{r, echo=FALSE}
+tax_list<-genbank_euk$tax_id
+tax_list<-gsub("taxon:", "", tax_list)
+tax_list<-unique(tax_list)
+write_delim(as.data.frame(tax_list), "../data/genbank/tax_genbank", delim=",")
+```
+
+The file tax_list is taken and the id's that don't begin with a digit are removed and stored in a separate file since this are not from genbank. 
+
+```
+cat tax_genbank | grep -Pv "^[[:digit:]]"  > tax_nongenbank
+cat tax_genbank | grep -P "^[[:digit:]]"  > tax_genbank1
+cat tax_genbank1 > tax_genbank
+rm tax_genbank1
+
+
+```
+
+
+Using NCBI Entrez the additional taxonomic information is retrieved, the following lines are an example of the instruction to retrieve all the additional information for the species with tax id  2175846.
+
+```
+efetch -db taxonomy -id -2175846 -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element Rank -block "*/Taxon" -if Rank -equals kingdom -element ScientificName -block "*/Taxon" -if Rank -equals phylum -element Rank -block "*/Taxon" -if Rank -equals phylum -element ScientificName -block "*/Taxon" -if Rank -equals class -element Rank -block "*/Taxon" -if Rank -equals class -element ScientificName -block "*/Taxon" -if Rank -equals order -element Rank -block "*/Taxon" -if Rank -equals order -element ScientificName -block "*/Taxon" -if Rank -equals family -element Rank  -block "*/Taxon" -if Rank -equals family -element ScientificName -block "*/Taxon" -if Rank -equals subfamily -element Rank -block "*/Taxon" -if Rank -equals subfamily -element ScientificName -block "*/Taxon" -if Rank -equals genus -element Rank -block "*/Taxon" -if Rank -equals genus -element ScientificName
+```
+
+The following while loop takes the file tax_genbank, which contains all the species' tax ids and uses them to perform individual queries on Entrez NCBI and retrieves the additional taxonomic information that we want.
+
+```
+while read LINE; do  efetch -db taxonomy -id -$LINE -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element Rank -block "*/Taxon" -if Rank -equals kingdom -element ScientificName -block "*/Taxon" -if Rank -equals phylum -element Rank -block "*/Taxon" -if Rank -equals phylum -element ScientificName -block "*/Taxon" -if Rank -equals class -element Rank -block "*/Taxon" -if Rank -equals class -element ScientificName -block "*/Taxon" -if Rank -equals order -element Rank -block "*/Taxon" -if Rank -equals order -element ScientificName -block "*/Taxon" -if Rank -equals family -element Rank  -block "*/Taxon" -if Rank -equals family -element ScientificName -block "*/Taxon" -if Rank -equals subfamily -element Rank -block "*/Taxon" -if Rank -equals subfamily -element ScientificName -block "*/Taxon" -if Rank -equals genus -element Rank -block "*/Taxon" -if Rank -equals genus -element ScientificName | cut -f1 -d":"; done < ./data/genbank/tax_genbank > tax_genbank_info.tsv
+```
+
+
+After a few hours the script was finished however there were only 15,990 lines on the resulting file instead of 15,993.
+
+When examining only the ids, one appeared twice, in  tax_genbank_info.tsv the repeated ids corresponded to the following lines:
+
+2053092	2053124	Drymonema sp. 1 LGD-2017	kingdom	Metazoa	phylum	Cnidaria	class	Scyphozoa	order	Semaeostomeae	familyDrymonematidae	genus	Drymonema
+2053092	Drymonema sp. 1 LGD-2017	kingdom	Metazoa	phylum	Cnidaria	class	Scyphozoa	order	Semaeostomeae	family	Drymonematidae	genus	Drymonema
+
+The only difference is that one  has two ids, the id 2053124 appeared as unknown in the genbank taxonomy database therefore this line was deleted from the file.
+```
+ sort tax_genbank_info.tsv |  grep -v "2053124" > tax_genbank_infou.tsv
+```
+To check which ids were missing first I stored the ids in a separate file:
+
+```
+awk '{ print $1 }' FS='\t' tax_genbank_infou.tsv |sort > tax_genbank_info_ids
+sort ./data/genbank/tax_genbank > tax_genbank_sorted 
+```
+
+To compare them the instruction comm was used:
+
+comm [OPTION]... FILE1 FILE2
+With no options, produce three-column output. Column one contains lines unique to FILE1, column two contains lines unique to FILE2, and column three contains lines common to both files.
+
+-1
+suppress column 1 (lines unique to FILE1)
+-2
+suppress column 2 (lines unique to FILE2)
+-3
+suppress column 3 (lines that appear in both files)
+
+ Ids unique to the newly downloaded taxonomic information:
+```
+ comm -23 tax_genbank_info_ids tax_genbank_sorted 
+```
+
+The reason there are ids that are unique to the new downloaded information is that some entries have two ids, one of the ids was in our original tax_genbank ids list, and the other one was retrieved when the entrez query was performed, this data entries were stored like this:
+
+2608785	40159	Hamigera ingelheimensis	kingdom	Fungi	phylum	Ascomycota	class	Eurotiomycetes	order	Eurotiales	family	Aspergillaceae	genus	Hamigera
+
+Where the second id, in the example "40159" is the one in our original list of ids.
+
+*When you search id 40159 in the Taxonomy database a note appears indicating that that record was merged with record with id 2608785
+
+Ids unique to our original tax_genbank list:
+
+```
+comm -13 tax_genbank_info_ids tax_genbank_sorted > missing_taxids
+```
+
+The missing ids are queried in Entrez with the same while loop as above:
+
+```
+while read LINE; do  efetch -db taxonomy -id -$LINE -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element Rank -block "*/Taxon" -if Rank -equals kingdom -element ScientificName -block "*/Taxon" -if Rank -equals phylum -element Rank -block "*/Taxon" -if Rank -equals phylum -element ScientificName -block "*/Taxon" -if Rank -equals class -element Rank -block "*/Taxon" -if Rank -equals class -element ScientificName -block "*/Taxon" -if Rank -equals order -element Rank -block "*/Taxon" -if Rank -equals order -element ScientificName -block "*/Taxon" -if Rank -equals family -element Rank  -block "*/Taxon" -if Rank -equals family -element ScientificName -block "*/Taxon" -if Rank -equals subfamily -element Rank -block "*/Taxon" -if Rank -equals subfamily -element ScientificName -block "*/Taxon" -if Rank -equals genus -element Rank -block "*/Taxon" -if Rank -equals genus -element ScientificName | cut -f1 -d":"; done < missing_taxids > tax_info_missing.tsv
+```
+
+The missing data was downloaded (not all 31 records are actually missing, 27 are just cases with 2 ids and in which different ids were extracted from the tsv than the one already in our tax_genbank list)
+
+```
+cat tax_genbank_infou.tsv > tmp_tax
+cat tax_info_missing.tsv >> tmp_tax
+```
+
+Check that removing repeated records we get the correct number of ids:
+```
+ cat tmp_tax | sort | uniq | grep "" -c
+ ```
+15993
+
+Save complete info in new file. 
+```
+cat tmp_tax | sort | uniq > taxinfo.tsv
+```
+
+Import csv and correct columns when necessary 
+
+```{r, echo=FALSE, warning=F, message=F}
+library(readr)
+tax_cols<- c("Tax_id", "Species_name", "kingdom1", "kingdom", "phylum1", "phylum", 
+             "class1", "class", "order1", "order", "family1",
+             "family", "subfamily1", "subfamily", "genus1", 
+             "genus")
+
+infotax_ncbi <- read_delim("../data/genbank/taxinfo.tsv", 
+                           "\t", escape_double = FALSE, col_names = tax_cols, 
+                           trim_ws = TRUE)
+
+#take the rows with missing taxonomic information and move the columns so that the data is in the correct columns, and the missing data have NAs.
+
+infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),5:16]<-infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),3:16]
+infotax_ncbi[which(infotax_ncbi$kingdom1!="kingdom"),3:4]<-NA
+
+infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),7:16]<-infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),5:16]
+infotax_ncbi[which(infotax_ncbi$phylum1!="phylum"),5:6]<-NA
+
+infotax_ncbi[which(infotax_ncbi$class1!="class"),9:16]<-infotax_ncbi[which(infotax_ncbi$class1!="class"),7:16]
+infotax_ncbi[which(infotax_ncbi$class1!="class"),7:8]<-NA
+
+infotax_ncbi[which(infotax_ncbi$order1!="order"),11:16]<-infotax_ncbi[which(infotax_ncbi$order1!="order"),9:16]
+infotax_ncbi[which(infotax_ncbi$order1!="order"),9:10]<-NA
+
+infotax_ncbi[which(infotax_ncbi$family1!="family"),13:16]<-infotax_ncbi[which(infotax_ncbi$family1!="family"),11:16]
+infotax_ncbi[which(infotax_ncbi$family1!="family"),11:12]<-NA
+
+infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),15:16]<-infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),13:16]
+infotax_ncbi[which(infotax_ncbi$subfamily1!="subfamily"),13:14]<-NA
+
+
+infotax<- cbind(infotax_ncbi[,1], infotax_ncbi[,c(4,6,8,10,12,14,16)], infotax_ncbi[,2])
+
+```
+
+Added missing kingdoms, these were searched by hand and then added. 
+Search by genus:
+1)"Negarnaviricota"                                 
+2)"Rhodophyta"              
+3)"Apicomplexa"              
+4)"Bacillariophyta"           
+5)"Euryarchaeota"             
+6)"Cercozoa"                  
+7)"Crenarchaeota"            
+8)"Candidatus Micrarchaeota"  
+9)"Candidatus Bathyarchaeota" 
+10)"Ciliophora"                
+11)"Heterolobosea"            
+12)"Euglenida"                 
+13)"Perkinsozoa"              
+14)"Cryptophyta"             
+15)"Thaumarchaeota" 
+```{r}
+
+infotax[which(infotax$phylum=="Thaumarchaeota"),2]<-"Archaea" 
+infotax[which(infotax$phylum=="Euryarchaeota"),2]<-"Archaea" 
+infotax[which(infotax$phylum=="Candidatus Bathyarchaeota"),2]<-"Archaea"
+infotax[which(infotax$phylum=="Candidatus Micrarchaeota"),2]<-"Archaea"
+infotax[which(infotax$phylum=="Crenarchaeota"),2]<-"Archaea"
+infotax[which(infotax$phylum=="Bacillariophyta"),2]<-"Protista" 
+infotax[which(infotax$phylum=="Negarnaviricota" ),2]<-"Virus"
+infotax[which(infotax$phylum=="Rhodophyta" ),2]<-"Plantae/Protista"
+infotax[which(infotax$phylum=="Apicomplexa" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Cercozoa" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Ciliophora" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Cryptophyta" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Heterolobosea" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Euglenida" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Perkinsozoa" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Negarnaviricota" ),2]<-"Virus"
+ 
+```
+
+
+
+infotax_ncbi[which(infotax_ncbi$family=="Entamoebidae"),3]<-"Protista"
+infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),3]<-"Protista"
+
+
+infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),4]<-"Rhodophyta"
+
+infotax_ncbi[which(infotax_ncbi$genus=="Chlorarachnion"),3]<-"Protista"
+
+```
+
+Important note, I've had problems using the xtract command from Entrez NCBI
+
+The following error would appear:
+Unable to locate xtract executable. Please execute the following
+
+  ftp-cp ftp.ncbi.nlm.nih.gov /entrez/entrezdirect xtract.Linux.gz
+  gunzip -f xtract.Linux.gz
+  chmod +x xtract.Linux
+Next I would restore the value of the environment variable $PATH: 
+
+```
+PATH=$(getconf PATH)
+```
+
+Then I would rerun the installation instructions for NCBI :
+
+```
+  cd ~
+  /bin/bash
+  perl -MNet::FTP -e \
+    '$ftp = new Net::FTP("ftp.ncbi.nlm.nih.gov", Passive => 1);
+     $ftp->login; $ftp->binary;
+     $ftp->get("/entrez/entrezdirect/edirect.tar.gz");'
+  gunzip -c edirect.tar.gz | tar xf -
+  rm edirect.tar.gz
+  builtin exit
+  export PATH=${PATH}:$HOME/edirect >& /dev/null || setenv PATH "${PATH}:$HOME/edirect"
+  ./edirect/setup.sh
+```
+This would solve the problem however only in the current environment, meaning that whenever I opened a new terminal the value of PATH was different again and then I had to repeat all the previous steps to run the Entrez xtract instruction. I am thinking I have to modify my PATH variable permanently in my bash configuration but I didnt do it, because I dont wanna break anything else.  
+
