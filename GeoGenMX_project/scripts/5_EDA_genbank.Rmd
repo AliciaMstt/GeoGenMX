@@ -1,0 +1,139 @@
+
+---
+title: "EDA GENBANK DATA"
+output: html_document
+---
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+library(magrittr)
+library(dplyr)
+library(readr)
+#Obtain number of sequences per kingdom and per phylum
+
+genbank<-read_csv("../data/genbank/genbank_complete.csv")
+```
+Number of sequences per kingdom:
+```{r, echo=FALSE, error=FALSE, message=FALSE}
+king_phyl<-genbank%>% group_by(phylum, kingdom) %>% summarise(n())
+colnames(king_phyl)<-c("phylum", "kingdom", "num_seqs")
+king_seqs<-genbank%>%group_by(kingdom)%>%summarise(n())
+as.data.frame(king_seqs)
+```
+
+
+```{r, echo=FALSE, error=F, message=FALSE}
+genbank_nlatlon<-genbank[genbank$`lat-lon`=="-",]
+genbank$latlon_info<-NA
+genbank$latlon_info<-genbank$`lat-lon`!="-"
+latlon_kin<-genbank%>%group_by(kingdom, latlon_info)%>%summarise(n())
+colnames(latlon_kin)<-c("kingdom", "latlon_info", "num_seqs")
+```
+Information available for latitude and longitude:
+```{r, echo=FALSE, error=F, message=FALSE}
+as.data.frame(latlon_kin)
+```
+
+
+```{r, echo=FALSE, error=FALSE, message= FALSE}
+#The data show that there are 114,502 data entries with information on latitude and longitude and no information on kingdom, these where further explored. 
+#data frame of sequences without kingdom and with lat-lon information
+gb_sk_latlon<-genbank[which(is.na(genbank$kingdom) & genbank$latlon_info==T),]
+# A lot of these are metagenomes or uncultured organisms
+#Index list of metagenomes and uncultured organisms
+meta_unc<-grep("metagenome|uncultured organism|virus|environmental sample", gb_sk_latlon$taxonomy, invert = T)
+
+gb_sk_latlon2<-gb_sk_latlon[meta_unc,]
+#Remove the ones with no taxonomic information at all
+gb_sk_latlon2<-gb_sk_latlon2[!(is.na(gb_sk_latlon2$phylum)) |
+                             !(is.na(gb_sk_latlon2$class)) |
+                               !(is.na(gb_sk_latlon2$order)) |
+                                !(is.na(gb_sk_latlon2$family))|
+                                !(is.na(gb_sk_latlon2$subfamily))|
+                                !(is.na(gb_sk_latlon2$genus))|
+                                !(is.na(gb_sk_latlon2$Species_name)),]
+#Once metagenomes and environmental samples as well as data with no taxonomic information are excluded 1355 species remain sequences remain. 
+#Take these tax ids and repeat steps necessary to fill their taxonomic information
+tax_info_sk_latlon<-gb_sk_latlon2[,c(8:10,17:25)]
+tax_info_sk_latlon<-unique(tax_info_sk_latlon)
+
+#Using the column taxonomy and grep, keep only the rows that had species from metazoa, viridiplantae or fungi.
+ind_metvirfun<-grep("Metazoa|Viridiplantae|Fungi", tax_info_sk_latlon$taxonomy)
+tax_info_sk_latlon<-tax_info_sk_latlon[ind_metvirfun,]
+#Keep only the columns regarding taxonomic information and taxonomic id
+tax_info_sk_latlon<-tax_info_sk_latlon[,4:12]
+tax_info_sk_latlon<-unique(tax_info_sk_latlon)
+
+write_csv(tax_info_sk_latlon,"../data/genbank/taxonomic_info_sk_latlon.csv")
+
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+kingplot<-ggplot(data=king_phyl, aes(x=kingdom, y=num_seqs, fill=kingdom))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Number of sequences per kingdom")
+
+```
+
+```{r kingplot, echo=FALSE, warning=FALSE, message=FALSE}
+
+kingplot
+
+```
+
+```{r, warning=F, message=F, echo=F}
+
+kin_latlon_plot<-ggplot(latlon_kin, aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Data with lat-lon per Kingdom.") + theme(axis.text.x = element_text(angle = 90)) + xlab("Kingdom") + ylab ("Number of sequences") 
+
+kin_latlon_plot2<-ggplot(latlon_kin[c(3:6,9:16),], aes(factor(kingdom), num_seqs, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette = "Set1") + ggtitle("Data with lat-lon per kingdom, excluding Metazoa and NA.") + xlab("Kingdom") + ylab ("Number of sequences")
+
+latlon_kin
+```
+
+```{r kin_latlon_plot, message=FALSE, warning=FALSE, echo=FALSE}
+kin_latlon_plot
+```
+
+
+```{r kin_latlon_plot2, message=FALSE, warning=FALSE, echo=FALSE}
+kin_latlon_plot2
+```
+
+Sequences from kingdom Metazoa
+
+```{r message=F, warning=F, error=F, echo=F}
+
+phyl_metplot<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Metazoa"),], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Number of sequences per phylum for Metazoa") + xlab("Phylum") + ylab ("Number of sequences")
+king_phyl[which(king_phyl$kingdom=="Metazoa"), c(1,3)]
+
+```
+
+```{r phyl_metplot, message=F, warning=F, echo=F}
+phyl_metplot
+```
+
+Sequences from kingdom Viridiplantae
+
+```{r, message=F, echo=F, warning=FALSE}
+
+phyl_plantae<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Viridiplantae"),], aes(x=phylum, y=num_seqs, fill=phylum))+
+           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Number of sequences per phylum for Viridiplantae") + labs (fill="Phylum") + xlab("Phylum") + ylab ("Number of  sequences")
+king_phyl[which(king_phyl$kingdom=="Viridiplantae"),c(1,3)]
+```
+
+```{r phyl_plantae, message=F, warning=F, echo=FALSE}
+phyl_plantae
+```
+
+
+

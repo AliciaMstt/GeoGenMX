@@ -172,35 +172,70 @@ Search by genus:
 15)"Thaumarchaeota" 
 ```{r}
 
-infotax[which(infotax$phylum=="Thaumarchaeota"),2]<-"Archaea" 
-infotax[which(infotax$phylum=="Euryarchaeota"),2]<-"Archaea" 
-infotax[which(infotax$phylum=="Candidatus Bathyarchaeota"),2]<-"Archaea"
-infotax[which(infotax$phylum=="Candidatus Micrarchaeota"),2]<-"Archaea"
-infotax[which(infotax$phylum=="Crenarchaeota"),2]<-"Archaea"
-infotax[which(infotax$phylum=="Bacillariophyta"),2]<-"Protista" 
 infotax[which(infotax$phylum=="Negarnaviricota" ),2]<-"Virus"
 infotax[which(infotax$phylum=="Rhodophyta" ),2]<-"Plantae/Protista"
 infotax[which(infotax$phylum=="Apicomplexa" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Bacillariophyta"),2]<-"Protista" 
+infotax[which(infotax$phylum=="Euryarchaeota"),2]<-"Archaea" 
 infotax[which(infotax$phylum=="Cercozoa" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Crenarchaeota"),2]<-"Archaea"
+infotax[which(infotax$phylum=="Candidatus Micrarchaeota"),2]<-"Archaea"
+infotax[which(infotax$phylum=="Candidatus Bathyarchaeota"),2]<-"Archaea"
 infotax[which(infotax$phylum=="Ciliophora" ),2]<-"Protista"
-infotax[which(infotax$phylum=="Cryptophyta" ),2]<-"Protista"
 infotax[which(infotax$phylum=="Heterolobosea" ),2]<-"Protista"
 infotax[which(infotax$phylum=="Euglenida" ),2]<-"Protista"
 infotax[which(infotax$phylum=="Perkinsozoa" ),2]<-"Protista"
-infotax[which(infotax$phylum=="Negarnaviricota" ),2]<-"Virus"
- 
+infotax[which(infotax$phylum=="Cryptophyta" ),2]<-"Protista"
+infotax[which(infotax$phylum=="Thaumarchaeota"),2]<-"Archaea" 
+```
+
+Missing kingdom and phylum by class
+1)"Xanthophyceae"= Protista, Ochrophyta     
+2)"Dinophyceae" =  Protista, Dinoflagellata   
+3)"Phaeophyceae" = Protista,  Ochrophyta
+4)"Oomycetes" = Protista, heterokonta      
+5)"Ichthyosporea" = Protista, choanozoa
+6)"Haptophyta"  = Protista, Haptophyta
+7)"Eustigmatophyceae" = Protista, Ochrophyta
+8)"Raphidophyceae"  = Protista, Ochrophyta
+```{r}
+#extract the unique classes that have phylum and kingdom missing
+# unique(infotax[which(is.na(infotax$phylum) & is.na(infotax$kingdom)),4])
+
+infotax[which(infotax$class=="Xanthophyceae" ),2]<-"Protista"
+infotax[which(infotax$class=="Xanthophyceae" ),3]<-"Ochrophyta"
+infotax[which(infotax$class=="Dinophyceae" ),2]<-"Protista"
+infotax[which(infotax$class=="Dinophyceae" ),3]<-"Dinoflagellata"
+infotax[which(infotax$class=="Phaeophyceae" ),2]<-"Protista"
+infotax[which(infotax$class=="Phaeophyceae" ),3]<-"Ochrophyta"
+infotax[which(infotax$class=="Oomycetes" ),2]<-"Protista"
+infotax[which(infotax$class=="Oomycetes" ),3]<-"Heterokonta"
+infotax[which(infotax$class=="Ichthyosporea" ),2]<-"Protista"
+infotax[which(infotax$class=="Haptophyta" ),3]<-"Haptophyta"
+infotax[which(infotax$class=="Haptophyta" ),2]<-"Protista"
+infotax[which(infotax$class=="Ichthyosporea" ),3]<-"Choanozoa"
+infotax[which(infotax$class=="Eustigmatophyceae" ),2]<-"Protista"
+infotax[which(infotax$class=="Eustigmatophyceae" ),3]<-"Ochrophyta"
+infotax[which(infotax$class=="Raphidophyceae" ),2]<-"Protista"
+infotax[which(infotax$class=="Raphidophyceae" ),3]<-"Ochrophyta"
+
 ```
 
 
+The following are missing kingdoms added when the data was first downloaded so they were kept as they are. 
+```{r, warning=FALSE, message=FALSE}
+infotax[which(infotax$family=="Entamoebidae"),3]<-"Protista"
+infotax[which(infotax$family=="Flaviviridae"),3]<-"Virus"
+infotax[which(infotax$genus=="Chlorarachnion"),3]<-"Protista"
 
-infotax_ncbi[which(infotax_ncbi$family=="Entamoebidae"),3]<-"Protista"
-infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),3]<-"Protista"
+```
 
+The data is exported to a csv file 
 
-infotax_ncbi[which(infotax_ncbi$class=="Florideophyceae"),4]<-"Rhodophyta"
-
-infotax_ncbi[which(infotax_ncbi$genus=="Chlorarachnion"),3]<-"Protista"
-
+```{r, message=FALSE, warning=FALSE}
+infotax<-as.data.frame(infotax)
+write_csv(infotax, "../data/genbank/infotax_ncbi.csv")
+```
 ```
 
 Important note, I've had problems using the xtract command from Entrez NCBI
