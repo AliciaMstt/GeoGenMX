@@ -325,7 +325,7 @@ phylum Oomycetes:Protista
 phylum Phaeophyceae:Protista
 genus Chlorarachnion:Protista
 
-
+ 
 ```{r, warning=FALSE, message=FALSE}
 infotax_ncbi[which(infotax_ncbi$phylum=="Euryarchaeota"),3]<-"Archaea"
 infotax_ncbi[which(infotax_ncbi$phylum=="Candidatus Bathyarchaeota"),3]<-"Archaea"
