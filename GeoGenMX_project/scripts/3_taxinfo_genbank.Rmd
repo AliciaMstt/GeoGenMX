@@ -230,12 +230,15 @@ infotax[which(infotax$genus=="Chlorarachnion"),3]<-"Protista"
 
 ```
 
-The data is exported to a csv file 
 
-```{r, message=FALSE, warning=FALSE}
+
+
+
+The data is exported to a csv file 
+```{r, message=FALSE, warning=FALSE,, echo=F}
 infotax<-as.data.frame(infotax)
 write_csv(infotax, "../data/genbank/infotax_ncbi.csv")
-```
+
 ```
 
 Important note, I've had problems using the xtract command from Entrez NCBI

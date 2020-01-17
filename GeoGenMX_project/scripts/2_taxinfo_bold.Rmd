@@ -1,0 +1,143 @@
+
+The data downloaded from BOLD is read
+```{r, error=FALSE, echo=FALSE, warning=FALSE}
+bold_data <- read_delim("../data/bold/bold_data.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+bold_data<-as.data.frame(bold_data)
+```
+
+The nomenclature of some phylum was changed by hand in order to match it to the one available in NCBI.
+
+```{r}
+bold_data[bold_data$phylum_name=="Chlorarachniophyta", 10]<-"Chlorarachniophyceae"
+bold_data[bold_data$phylum_name=="Glomeromycota",10]<-"Glomeromycotina"
+
+
+```
+
+First a list was generated with the phylum names:
+
+
+Instructions run at the shell in the folder /data/bold
+
+```{r}
+bold_phylum<-unique(bold_data$phylum_name)
+write_csv(as.data.frame(bold_phylum), "../data/bold/bold_phylum.txt", col_names = F)
+```
+
+This list was then introduced to the Taxonomy website from NCBI to obtain the phylum ids. And from the file downloaded from Taxonomy the ids alone were extracted.
+
+```
+cat tax_bold.txt | egrep -o "\|\s[0-9]+" | egrep -o "[0-9]+" > taxid.txt 
+
+```
+
+The ids were then introduced to entrez to perform a query and obtain the phylum name with it's kingdom
+
+```
+efetch -db taxonomy -id 6656,7711,10190,6447,2763,3398,6340,7586,5204,6231,4890,2696291,6157,6040,10232,2316800,6073,5878,3041,3208,1224,120557,214504,3195,2836,58020,1760,201174,27563,2074142,6217,29197,13809,3027,28889,183924,287987,451507,451827,451828,1264859,1312402,29178,33313,35493,33310 -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element ScientificName > phylumid_kingdom.tsv
+```
+
+Import data with phylum ids and kingdoms 
+```{r, message=F, echo=FALSE, warning=FALSE}
+phylumid_kingdom <- read_delim("../data/bold/phylumid_kingdom.tsv",  "\t", escape_double = FALSE, col_names = FALSE, trim_ws = TRUE)
+colnames(phylumid_kingdom)<-c("phylum_id", "phylum_name", "kingdom")
+```
+
+Remove repeated phylums:
+There are therefore 3 repeated phylums, looking at them manually we find 
+Acanthocephala, Actinobacteria and Onycophora.
+
+These were looked up at the Taxonomy database.
+Onycophora id 2074142 is a genus from the kingdom fungi.
+Onycophora id 27563 is a phylum of velvet worms.
+The fungi genus was removed.
+Actinobacteria id 201174 phylum.
+Actinobacteria id 1760 is a class.
+The class was removed.
+Acanthocephala id 2316800 is a genus. 
+Acanthocephala id 10232 is a phylum. 
+The genus was removed. 
+
+```{r, message=F, echo=F, warning=F}
+phylumid_kingdom<-phylumid_kingdom[-(which(phylumid_kingdom$phylum_id==2074142|phylumid_kingdom$phylum_id==1760|phylumid_kingdom$phylum_id==2316800)),]
+```
+
+The phylum with NA in kingdom were looked up manually either in Taxonomy NCBI or from a different source (mostly wikipedia).
+
+
+Actinobacteria       Bacteria     
+Bacillariophyta      Protista     
+Chlorarachniophyceae Protista
+Ciliophora           Protista
+Crenarchaeota        Archaea    
+Thermoprotei         Archaea    
+Cryptophyceae        Protista  
+Foraminifera         Protista     
+Ochrophyta           Protista    
+Proteobacteria       Bacteria
+Rhodophyta           Plantae/protista
+
+```{r message=F, warning=F, echo=F}
+phylumid_kingdom$kingdom[which(phylumid_kingdom$phylum_name=="Actinobacteria"|phylumid_kingdom$phylum_name=="Proteobacteria")]<-"Bacteria"
+
+phylumid_kingdom$kingdom[which(phylumid_kingdom$phylum_name=="Bacillariophyta"|
+                                 phylumid_kingdom$phylum_name=="Chlorarachniophyceae"|
+                                phylumid_kingdom$phylum_name=="Ciliophora"|
+                               phylumid_kingdom$phylum_name=="Cryptophyceae"|
+                                phylumid_kingdom$phylum_name=="Ochrophyta"|
+                                phylumid_kingdom$phylum_name=="Foraminifera") ]<-"Protista"
+
+phylumid_kingdom$kingdom[which(phylumid_kingdom$phylum_name=="Rhodophyta")]<-"Plantae/protista"
+
+phylumid_kingdom$kingdom[which(phylumid_kingdom$phylum_name=="Crenarchaeota"|phylumid_kingdom$phylum_name=="Thermoprotei")]<-"Archaea"
+```
+
+
+For some reason when importing our list of phylum some of the original we had were left out, the list of phylum in the original data and the one imported from NCBI are compared, the missing phylum are then searched manually and added: 
+
+```{r, echo=F, warning=F, message=F}
+missing_phylum<-bold_phylum[which(bold_phylum %in% phylum_ncbi==F)]
+```
+Zygomycota: Fungi
+Magnoliophyta: it appears as Magnoliopsida in NCBI. *Change Magnoliopsida from the genbank files to Magnoliophyta. Viridiplantae. 
+Pteridophyta: Viridiplantae
+Pinophyta: Viridiplantae
+Phoroniformea: It appears in NCBI as phoronida (ahorita se va a corregir)
+Heterokontophyta: Protista
+Cryptophyta:Protista
+Pyrrophycophyta: Protista
+Marine: NA (probably an environmental sample)
+
+The missing phylum are added:
+```{r}
+phylumid_kingdom[44,]<-c(NA, "Zygomycota", "Fungi")
+phylumid_kingdom[45,]<-c(NA, "Pteridophyta", "Viridiplantae")
+phylumid_kingdom[46,]<-c(NA, "Magnoliophyta", "Viridiplantae")
+phylumid_kingdom[47,]<-c(NA, "Pinophyta", "Viridiplantae")
+phylumid_kingdom[48,]<-c(NA, "Heterokontophyta", "Protista")
+phylumid_kingdom[49,]<-c(NA, "Cryptophyta", "Protista")
+phylumid_kingdom[50,]<-c(NA, "Pyrrophycophyta", "Protista")
+phylumid_kingdom[51,]<-c(NA, "Marine", NA)
+
+```
+
+
+
+Add column with kingdom to bold data and writes new file with column kingdom, as well as file with taxonomic information from bold.
+```{r message=F, echo=F, warning=F}
+#get positions of matching phylum
+matched_phylum<-match(bold_data$phylum_name, phylumid_kingdom$phylum_name)
+bold_data$kingdom<-phylumid_kingdom$kingdom[matched_phylum]
+taxinfo_bold<-unique(bold_data[c(81,10,12,14,16,18,20,22)])
+
+matched_id<-match(taxinfo_bold$phylum_name, phylumid_kingdom$phylum_name)
+taxinfo_bold$phylum_ncbi_id<-phylumid_kingdom$phylum_id[matched_id]
+write_csv(taxinfo_bold, "../data/bold/taxinfo_bold.csv")
+```
+
+```{r message=F, echo=F, warning=F}
+
+write_csv(bold_data, "../data/bold/bold_data.csv" )
+
+```
+
