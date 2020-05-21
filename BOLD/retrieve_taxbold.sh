@@ -1,2 +1,0 @@
-efetch -db taxonomy -id 10190,10232,120557,1224,1264859,13809,1760,183924,20117414504,27563,2763,2836,287987,28889,29178,29197,3041,3195,3208,3398,35493,451507,451827,451828,4890,5204,58020,5878,6040,6073,6157,6231,6340,6447,6656,7586,7711 -format xml | xtract -pattern Taxon -element TaxId ScientificName -block "*/Taxon" -if Rank -equals kingdom -element ScientificName > phylumid_kingdom.tsv
-
