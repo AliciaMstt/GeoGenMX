@@ -1,5 +1,5 @@
-Para descargar las secuencias de genbank se usó la herramienta de NCBI entrez utilities. 
-Se instala así:
+To download the sequences from Genbank, the tool from NCBI Entrez Utilities was used
+Installation instructions:
 ```
 cd ~
   /bin/bash
