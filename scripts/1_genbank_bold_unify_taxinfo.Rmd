@@ -1,4 +1,198 @@
-It was decided to keep homologate
+It was decided to keep the information as it is in BOLD, unless the data was missing and it was available in GENBANK
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(readr)
+genbank<-read_csv("../data/genbank/infotax_ncbi.csv")
+bold<-read_csv("../data/bold/taxinfo_bold.csv")
+#change genbank column names to match the data from genbank, to make future merging easier
+colnames(genbank)<-c("Tax_id","kingdom", colnames(bold[,2:8]))
+
+```
+
+
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+bold_in_gb<-bold$species_name %in% genbank$species_name
+
+#separate bold data into data with species matches to downloaded genbank data and no species matches to gb data 
+
+#species in bold that match to gb
+bold_ingb<-bold[bold_in_gb==T,]
+#species in bold with no matches to gb
+bold_nogb<-bold[bold_in_gb==F,]
+#list of species names with no matches to gb data
+sp_miss_bold<-na.omit(bold_nogb$species_name)
+
+write_csv(as.data.frame(na.omit(sp_miss_bold)), "../data/bold/species_miss_bold.txt", col_names = F)
+rm(sp_miss_bold)
+```
+
+
+The list was uploaded to the Taxonomy NCBI website to obtain their tax ids 
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(stringr)
+sp_bold_miss_id<-read_delim("../data/bold/tax_bold_gb_id.txt", delim = "|\t" )
+
+#make tax_id a numeric variable
+sp_bold_miss_id$`	taxid`<- as.numeric(sp_bold_miss_id$`	taxid`)
+sp_bold_miss_id$`	name	`<-str_remove_all(sp_bold_miss_id$`	name	`, "\t")
+
+#From our original unique bold data, once removing those with species name = NA , and after looking them up in Taxonomy NCBI 2079 tax_ids were recovered
+
+#From bold_nogb remove phylum id 
+bold_nogb<-bold_nogb[,-9]
+#Add retrieved species Ids to bold_nogb data frame 
+bold_nogb$Tax_id<-NA
+#temporarily split bold_nogb into two data frames one with species_name==NA the other with species names
+bold_no_gb_sp_na<-bold_nogb[is.na(bold_nogb$species_name),]
+bold_no_gb_sp<-bold_nogb[!is.na(bold_nogb$species_name),]
+
+bold_no_gb_sp$Tax_id<-sp_bold_miss_id[match(bold_no_gb_sp$species_name, sp_bold_miss_id$`	name	`),4][[1]]
+
+bold_nogb<-rbind(bold_no_gb_sp, bold_no_gb_sp_na)
+rm(bold_no_gb_sp, bold_no_gb_sp_na, sp_bold_miss_id)
+
+```
+
+Divide genbank data into data that is also in bold and data that is unique to genbank.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+gb_in_bold<- genbank$species_name %in% bold$species_name
+
+#genbank data with species matches in bold
+gb_inbold<-genbank[gb_in_bold==T,]
+
+#genbank data with no species matches in bold
+gb_nobold<-genbank[gb_in_bold==F,]
+
+```
+
+
+Take data frame gb_nobold (data with no species name matches to bold data).
+From this point forward until otherwise noted the data starting point is genbank entries with no species match to our BOLD data base. 
+
+```{r echo=FALSE, warning=FALSE}
+#GENUS
+#Separate data between those with genus matches to bold and those without
+gb_genus_bold<- gb_nobold$genus_name %in% bold$genus_name
+gb_genus_inbold<-gb_nobold[gb_genus_bold==T,]
+gb_genus_nobold<-gb_nobold[gb_genus_bold==F,]
+
+gb_genus_nobold<-rbind(gb_genus_nobold, gb_genus_inbold[is.na(gb_genus_inbold$genus_name),])
+gb_genus_inbold<-gb_genus_inbold[!is.na(gb_genus_inbold$genus_name),]
+
+#To the data that has genus matching those in bold, add taxonomic information from bold for all columns (excluding tax id and species name).
+gb_genus<-cbind(bold[match(gb_genus_inbold$genus_name, bold$genus_name ),1:7], gb_genus_inbold[,c(9,1)])
+
+#SUBFAMILY
+#Separate data from gb_genus_nobold between those with matches by subfamily to bold data, and those without
+
+  gb_subfamily_bold<- gb_genus_nobold$subfamily_name %in% bold$subfamily_name
+  gb_subfamily_inbold<-gb_genus_nobold[gb_subfamily_bold==T,]
+  gb_subfamily_nobold<-gb_genus_nobold[gb_subfamily_bold==F,]
+  
+  gb_subfamily_nobold<-rbind(gb_subfamily_nobold, gb_subfamily_inbold[is.na(gb_subfamily_inbold$subfamily_name),])
+  gb_subfamily_inbold<-gb_subfamily_inbold[!is.na(gb_subfamily_inbold$subfamily_name),]
+  
+#To the data that has subfamily matching those in bold, add taxonomic information from bold for all columns (excluding tax id, species name and genus).
+gb_subfamily<-cbind(bold[match(gb_subfamily_inbold$subfamily_name, bold$subfamily_name ),1:6], gb_subfamily_inbold[,c(8,9,1)])
+
+#FAMILY
+#Separate data from gb_subfamily_nobold between those with matches by family to bold data, and those without
+   
+  gb_family_bold<- gb_subfamily_nobold$family_name %in% bold$family_name
+  gb_family_inbold<-gb_subfamily_nobold[gb_family_bold==T,]
+  gb_family_nobold<-gb_subfamily_nobold[gb_family_bold==F,]
+  
+  gb_family_nobold<-rbind(gb_family_nobold, gb_family_inbold[is.na(gb_family_inbold$family_name),])
+gb_family_inbold<-gb_family_inbold[!is.na(gb_family_inbold$family_name),]
+  
+#To the data that has family matching those in bold, add taxonomic information from bold for all columns (excluding tax id, species name, genus and subfamily).
+gb_family<-cbind(bold[match(gb_family_inbold$family_name, bold$family_name ),1:5], gb_family_inbold[,c(7,8,9,1)])
+
+#ORDER
+#Separate data from gb_family_nobold between those with matches by order to bold data, and those without
+   
+  gb_order_bold<- gb_family_nobold$order_name %in% bold$order_name
+  gb_order_inbold<-gb_family_nobold[gb_order_bold==T,]
+  gb_order_nobold<-gb_family_nobold[gb_order_bold==F,]
+  
+  gb_order_nobold<-rbind(gb_order_nobold, gb_order_inbold[is.na(gb_order_inbold$order_name),])
+gb_order_inbold<-gb_order_inbold[!is.na(gb_order_inbold$order_name),]
+  
+#To the data that has order matching those in bold, add taxonomic information from bold for all columns (excluding tax id, species name, genus, subfamily and family)
+gb_order<-cbind(bold[match(gb_order_inbold$order_name, bold$order_name ),1:4], gb_order_inbold[,c(6,7,8,9,1)])
+
+#CLASS
+#Separate data from gb_order_nobold between those with matches by order to bold data, and those without
+  gb_class_bold<- gb_order_nobold$class_name %in% bold$class_name
+  gb_class_inbold<-gb_order_nobold[gb_class_bold==T,]
+  gb_class_nobold<-gb_order_nobold[gb_class_bold==F,]
+  
+  
+   gb_class_nobold<-rbind(gb_class_nobold, gb_class_inbold[is.na(gb_class_inbold$class_name),])
+gb_class_inbold<-gb_class_inbold[!is.na(gb_class_inbold$class_name),]
+  
+  #To the data that has class matching those in bold add taxonomic information from bold for all (excluding tax id, species name, genus, subfamily, family and order )   and Add remaining rows from gb_class_nobold to gb_class
+  gb_class<-rbind (cbind(bold[match(gb_class_inbold$class_name, bold$class_name ),1:3], gb_class_inbold[,c(5,6,7,8,9,1)]), gb_class_nobold[,c(2:9,1)])
+  
+```
+
+Data frames:
+
+sp_bold_miss_id = tax_id for species unique to BOLD (ids retrieved from Taxonomy NCBI)
+bold_ingb = subset of bold that contains matches in species name to genbank
+bold_nogb= complement of bold_ingb
+ #GENUS
+gb_inbold= subset of genbank that contains matches in species name to bold
+gb_nobold= complement of gb_inbold
+    gb_genus_inbold=gb_nobold subset that contains matches to genus names in bold (removing those with NA        in genus column and moving them to gb_genus_nobold)
+     gb_genus= data from gb_genus_inbold with taxonomic information from bold table starting with genus
+    gb_genus_nobold=gb_genus_inbold complement plus, gb_genus_inbold data with NA on genus column
+          #SUBFAMILY
+          gb_subfamily_inbold=gb_genus_nobold subset containing matches to subfamily names in bold  (removing those with NA in genus column and moving them to gb_genus_nobold)
+          gb_subfamily=data from gb_subfamily in bold with taxonomic information from bold table starting at subfamily
+          gb_subfamily_nobold=gb_subfamily_inbold complement plus, gb_subfamily_inbold data with NA on subfamily column
+                #FAMILY
+                gb_family_inbold= gb_subfamily_inbold subset containing matches to family names in bold (removing those with NA in family column )
+                gb_family=data from gb_family_inbold with taxonomic information from bold table starting at family level
+                gb_family_nobold=gb_family_inbold complement plus gb_family_inbold data with NA on family column
+                      #ORDER
+                      gb_order_inbold=gb_family_nobold subset containing matches to order names in bold table (removing those with NA in order column)
+                      gb_order=gb_order_inbold data with taxonomic information from bold table starting with order name
+                      gb_order_nobold=gb_order_inbold complement plus gb_order_inbold data with NA in the order column
+                             #CLASS
+                                   gb_class_inbold=gb_class_nobold subset containing matches to class names in bold table (removing those with NA in class column)
+                                   gb_class_nobold=gb_class_inbold complement plus data with NA in the class column
+                                   gb_class=gb_class_inbold data with taxonomic information from bold table starting with class name, joined with data from gb_class_nobold
+                                   
+                                   
+```{r, echo=F, warning=F, message=F}
+#Join all the data into a single data frame that has NCBI Taxonomy species id, kingdom, and the rest of the taxonomic information was taken from the BOLD table when available otherwise it was left as is, as retrieved from NCBI.
+
+all_species<-rbind( cbind (bold_ingb[,-9], gb_inbold[match(bold_ingb$species_name, gb_inbold$species_name ), 1] ), bold_nogb, gb_genus, gb_subfamily, gb_family, gb_order, gb_class )
+
+rm(bold_ingb, bold_nogb, gb_inbold, gb_genus, gb_genus_inbold, gb_genus_nobold, gb_subfamily, gb_subfamily_inbold, gb_subfamily_nobold, gb_family, gb_family_inbold, gb_family_nobold, gb_order, gb_order_inbold, gb_order_nobold, gb_class, gb_class_inbold, gb_class_nobold)
+
+#check for rows with missing kingdoms by phylum
+nk<-unique(all_species[which(is.na(all_species$kingdom)), 2])
+all_species[which(all_species$phylum_name=="Glomeromycota"),1]<-"Fungi"
+all_species[which(all_species$phylum_name=="Chlorarachniophyta"),1]<-"Protista"
+all_species[which(all_species$phylum_name=="Cryptophycophyta"),1]<-"Chromista"
+all_species[which(all_species$phylum_name=="Virus"),1]<-"Virus"
+all_species[which(all_species$phylum_name=="Protista"),1]<-"Protista"
+#Some data still had kingdom NA while I didnt look them up in detail they seem to be mostly viruses
+
+
+#phylum with missing kingdom
+# Glomeromycota = Fungi
+#Chlorarachniophyta=Protista
+#Cryptophycophyta=
+#Virus=Virus
+#Protista=Protista
+
+```
+
+```{r, echo=F, warning=F, message=F}
+write_csv(all_species, "../data/taxonomic_info_all.csv")
 ```
