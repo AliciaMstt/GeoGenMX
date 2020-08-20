@@ -1,0 +1,16 @@
+Read bold data and unified taxonomic information
+
+```{r message=FALSE, echo=FALSE, warning=FALSE}
+bold_data<-read_csv("../data/bold/bold_data.csv")
+infotax <- read_csv("../data/taxonomic_info_all.csv")
+```
+
+```{r message=F, echo=F, warning}
+#Get bold matches for bold data with species name
+species_match<-match(bold_data[which(!is.na(bold_data$species_name)),22][[1]], infotax$species_name)
+bold_data[which(!is.na(bold_data$species_name)),81]<-infotax[species_match,1]
+bold_data$Tax_id<-NA
+bold_data[which(!is.na(bold_data$species_name)),82]<-infotax[species_match,9]
+write_csv(bold_data,"../data/bold/bold_complete.csv")
+```
+
