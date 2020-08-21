@@ -72,26 +72,38 @@ write_csv(tax_info_sk_latlon,"../data/genbank/taxonomic_info_sk_latlon.csv")
 
 ```
 
+#modify plot to lollipop plot add donut plot
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-library(ggplot2)
+library(ggplot2) 
 kingplot<-ggplot(data=king_phyl, aes(x=kingdom, y=num_seqs, fill=kingdom))+
            geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("") + xlab("Kingdom") + ylab("Number of sequences") 
-#insert donut plot
 
-donut <-ggplot(data = king_phyl, aes(x=2, y = num_seqs, fill = kingdom))+
-       geom_col(color = "black") +
-       coord_polar("y", start = 0) + 
-      # geom_text(aes(label = paste0(round(percentage*100), "%")), 
-                         # position = position_stack(vjust = 0.5)) +
-       theme(panel.background = element_blank(),
-             axis.line = element_blank(),
-             axis.text = element_blank(),
-             axis.ticks = element_blank(),
-             axis.title = element_blank(), 
-             plot.title = element_text(hjust = 0.5, size = 18)) +
-       ggtitle("Number of sequences per kingdom") +
-       xlim(0.5, 2.5)
 
+king_donut<-genbank%>% group_by(kingdom) %>% summarise(n()/nrow(genbank))
+colnames(king_donut)<-c("Kingdom", "Sequences")
+
+
+kingdont<-genbank %>% group_by(kingdom) %>% count()%>% 
+ungroup() %>% 
+arrange(desc(n))
+king_other<-c("Virus, Archaea, Chromista, Protista", sum(kingdont[5:9,2]))
+kingdont[2,1]<-"NA"
+kingdont<-rbind(kingdont[1:4,],king_other) %>% mutate(n=as.numeric(n)) %>% arrange(desc(n))
+
+kingdont$label<-paste0(kingdont$kingdom, "\n Percentage: ", kingdont$percentage)
+
+
+kingdont<-kingdont%>%mutate(percentage=round(n/sum(n),4)*100,     lab.pos=cumsum(percentage)-percentage*.5)
+
+
+
+ggplot(data=kingdont, 
+       aes(x=2, y=(percentage), fill=reorder(kingdom,n)))+
+      geom_bar(stat="identity")+
+       coord_polar(theta="y")+
+       xlim(c(1, 2.5))+
+  labs(fill="Kingdom")+
+  geom_text(aes(y=lab.pos, label=paste(percentage, "%" , sep="")), col="white") +theme_void()
 ```
 
 ```{r kingplot, echo=FALSE, warning=FALSE, message=FALSE}
