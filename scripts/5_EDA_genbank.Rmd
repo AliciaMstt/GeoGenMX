@@ -72,11 +72,16 @@ write_csv(tax_info_sk_latlon,"../data/genbank/taxonomic_info_sk_latlon.csv")
 
 ```
 
-#modify plot to lollipop plot add donut plot
+#modify plot to lollipop plot
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(ggplot2) 
-kingplot<-ggplot(data=king_phyl, aes(x=kingdom, y=num_seqs, fill=kingdom))+
-           geom_bar(stat="identity")+theme(axis.text.x=element_text(angle=90)) + ggtitle("") + xlab("Kingdom") + ylab("Number of sequences") 
+king_phyl<-king_phyl%>% mutate(kingdom=replace_na(kingdom, "NA")) %>% mutate(phylum=replace_na(phylum, "NA"))
+
+kingplot<-ggplot(data=king_phyl, aes(x=kingdom, y=num_seqs))+
+           geom_bar(stat="identity", fill="skyblue")+
+       #scale_fill_manual(values=c("#FF6666")) +
+  ggtitle("") + xlab("Kingdom") + ylab("Number of sequences") +
+  coord_flip() + theme(legend.position = "none")
 
 
 king_donut<-genbank%>% group_by(kingdom) %>% summarise(n()/nrow(genbank))
@@ -97,19 +102,22 @@ kingdont<-kingdont%>%mutate(percentage=round(n/sum(n),4)*100,     lab.pos=cumsum
 
 
 
-ggplot(data=kingdont, 
+kingdonut<-ggplot(data=kingdont, 
        aes(x=2, y=(percentage), fill=reorder(kingdom,n)))+
       geom_bar(stat="identity")+
        coord_polar(theta="y")+
        xlim(c(1, 2.5))+
+  scale_fill_brewer(palette=4) +
   labs(fill="Kingdom")+
-  geom_text(aes(y=lab.pos, label=paste(percentage, "%" , sep="")), col="white") +theme_void()
+  geom_text(aes(y=lab.pos, label=paste(percentage, "%" , sep="")), col="black") +theme_void()
+
+
 ```
 
 ```{r kingplot, echo=FALSE, warning=FALSE, message=FALSE}
 
 kingplot
-donut
+kingdonut
 
 ```
 
