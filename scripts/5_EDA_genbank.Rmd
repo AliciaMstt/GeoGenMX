@@ -311,6 +311,7 @@ phyl_prot
 king_phyl[which(king_phyl$kingdom=="Virus"),]
 ```
 
+Sequences from kingdom Virus
 ```{r, echo=F, message=F, warning=F}
 phyl_vir<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Virus" & !is.na(king_phyl$phylum)),], aes(x=phylum, y=num_seqs))+
            geom_bar(stat="identity", fill="skyblue")+theme_bw()+ coord_flip() + ggtitle("Sequences per phylum for Virus") + theme(plot.title = element_text(hjust = 0.5))  + xlab("Phylum") + ylab ("Number of sequences")
@@ -318,8 +319,8 @@ phyl_vir
 ```
 
 
-
-
+```{r}
 #Analysis of available geographic information
 
 #nota 24 de marzo borrar filas repetidas tanto en genbank como en bold
+```
