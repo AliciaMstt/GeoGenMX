@@ -9,13 +9,13 @@ GENBANK
 6) 5_EDA_genbank.Rmd: explore the data and view missing fields, write file taxonomic_info_sk_latlon.csv which contains, the empty fields of data of species with latitude and longitude but incomplete taxonomic information (even after unifying the info with BOLD Taxonomic information).
 
 BOLD
-7)1_retrieve_bold.md: Instructions to download  data from BOLD
+7)1_retrieve_bold.md: Instructions to download  data from BOLD.
 8)2_taxinfo_bold.Rmd: Instructions on cleaning the data from bold and homologating the taxonomic information with the one extracted from genbank, instructions generate the following files: bold_phylum.txt, tax_bold.txt, taxid.txt, phylumid_kingdom.tsv, bold_data.csv.
-9)3_bold_mergeall.Rmd: add the taxonomic information unified with genbank including the Tax_id from NCBI, and kingdom, write file bold_complete.csv
+9)3_bold_mergeall.Rmd: add the taxonomic information unified with genbank including the Tax_id from NCBI, and kingdom, write file bold_complete.csv.
 
 BOTH
-1_genbank_bold_unify_taxinfo.Rmd: script that unifies the taxonomic information from genbank and bold 
+1_genbank_bold_unify_taxinfo.Rmd: script that unifies the taxonomic information from genbank and bold. 
 
 finished filed from archive:
-retrieved_genbank.Rmd
+retrieved_genbank.Rmd.
 
