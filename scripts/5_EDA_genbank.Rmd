@@ -8,6 +8,7 @@ library(tidyr)
 library(magrittr)
 library(dplyr)
 library(readr)
+
 #Obtain number of sequences per kingdom and per phylum
 
 genbank<-read_csv("../data/genbank/genbank_complete.csv")
@@ -33,6 +34,22 @@ genbank$latlon_info<-NA
 genbank$latlon_info<-genbank$`lat-lon`!="-"
 latlon_kin<-genbank%>%group_by(kingdom, latlon_info)%>%summarise(n())
 colnames(latlon_kin)<-c("kingdom", "latlon_info", "num_seqs")
+latlon_kin[18,1]<-"Chromista"
+latlon_kin[18,2]<-TRUE
+latlon_kin[18,3]<-0
+latlon_kin<-latlon_kin%>%arrange(kingdom)
+
+genbank$locality_info<-NA
+genbank[which(is.na(genbank$locality)),29]<-FALSE
+genbank[which(!is.na(genbank$locality)),29]<-TRUE
+locality_kin<-genbank%>%group_by(kingdom, locality_info)%>%summarise(n())
+colnames(locality_kin)<-c("kingdom", "locality_info", "num_seqs")
+locality_kin[18,1]<-"Chromista"
+locality_kin[18,2]<-TRUE
+locality_kin[18,3]<-0
+locality_kin<-locality_kin%>%arrange(kingdom)
+
+
 ```
 
 
@@ -116,6 +133,7 @@ kingdonut
 ```
 
 ```{r, warning=F, message=F, echo=F}
+options(scipen = 999)
 
 kin_latlon_plot<-ggplot(latlon_kin, aes(factor(kingdom), num_seqs, fill=latlon_info)) +
  geom_bar(stat="identity", position = "dodge") + 
@@ -123,6 +141,14 @@ kin_latlon_plot<-ggplot(latlon_kin, aes(factor(kingdom), num_seqs, fill=latlon_i
   theme(axis.text.x = element_text(angle = 90)) + xlab("Kingdom") + ylab ("Number of sequences") + labs (fill="Information on coordinates") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5))
 
 kin_latlon_plot2<-ggplot(latlon_kin %>% filter(kingdom != "Metazoa" && !is.na(kingdom)), aes(factor(kingdom), num_seqs, fill=latlon_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with coordinates per kingdom") + theme(axis.text.x = element_text(angle = 90))+ xlab("Kingdom") + ylab ("Number of sequences")  + labs(caption="*Data with Metazoa or NA at kingdom column were excluded from this plot.", fill="Information on coordinates")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5))
+
+kin_loc_plot<-ggplot(locality_kin, aes(factor(kingdom), num_seqs, fill=locality_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with locality information per Kingdom") +
+  theme(axis.text.x = element_text(angle = 90)) + xlab("Kingdom") + ylab ("Number of sequences") + labs (fill="Information on locality") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5))
+
+kin_loc_plot2<-ggplot(locality_kin %>% filter(kingdom != "Metazoa" && !is.na(kingdom)), aes(factor(kingdom), num_seqs, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per kingdom") + theme(axis.text.x = element_text(angle = 90))+ xlab("Kingdom") + ylab ("Number of sequences")  + labs(caption="*Data with Metazoa or NA at kingdom column were excluded from this plot.", fill="locality")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5))
+
 
 
 
@@ -141,6 +167,21 @@ kin_latlon_plot
 
 ```{r kin_latlon_plot2, message=FALSE, warning=FALSE, echo=FALSE}
 kin_latlon_plot2
+```
+
+Information available for locality:
+
+```{r message=F, warning=F, echo=F}
+locality_kin
+```
+
+```{r kin_loc_plot, message=FALSE, warning=FALSE, echo=FALSE}
+kin_loc_plot
+```
+
+
+```{r kin_loc_plot2, message=FALSE, warning=FALSE, echo=FALSE}
+kin_loc_plot2
 ```
 
 Sequences from kingdom Metazoa
@@ -318,9 +359,3 @@ phyl_vir<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Virus" & !is.na(king_p
 phyl_vir
 ```
 
-
-```{r}
-#Analysis of available geographic information
-
-#nota 24 de marzo borrar filas repetidas tanto en genbank como en bold
-```
