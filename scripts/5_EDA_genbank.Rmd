@@ -348,11 +348,12 @@ phyl_prot<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Protista" & !is.na(ki
 phyl_prot
 ```
 
+Sequences from kingdom Virus.
+
 ```{r, echo=F, message=F, warning=F}
 king_phyl[which(king_phyl$kingdom=="Virus"),]
 ```
 
-Sequences from kingdom Virus
 ```{r, echo=F, message=F, warning=F}
 phyl_vir<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Virus" & !is.na(king_phyl$phylum)),], aes(x=phylum, y=num_seqs))+
            geom_bar(stat="identity", fill="skyblue")+theme_bw()+ coord_flip() + ggtitle("Sequences per phylum for Virus") + theme(plot.title = element_text(hjust = 0.5))  + xlab("Phylum") + ylab ("Number of sequences")

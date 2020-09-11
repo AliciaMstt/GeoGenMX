@@ -191,6 +191,8 @@ Sequences from kingdom Protista
 
 ![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
+Sequences from kingdom Virus.
+
     ## # A tibble: 2 x 3
     ## # Groups:   phylum [2]
     ##   phylum          kingdom num_seqs
@@ -198,5 +200,4 @@ Sequences from kingdom Protista
     ## 1 Negarnaviricota Virus       5692
     ## 2 Virus           Virus        841
 
-Sequences from kingdom Virus
 ![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
