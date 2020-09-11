@@ -344,7 +344,7 @@ king_phyl[which(king_phyl$kingdom=="Protista" & !is.na(king_phyl$phylum) | king_
 
 ```{r, echo=F, message=F, warning=F}
 phyl_prot<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Protista" & !is.na(king_phyl$phylum) | king_phyl$kingdom=="Plantae/Protista"),], aes(x=phylum, y=num_seqs))+
-           geom_bar(stat="identity", fill="skyblue")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Sequences per phylum for Protista") + coord_flip()+theme_bw()+ theme(plot.title = element_text(hjust = 0.5))  + xlab("Phylum") + ylab ("Number of sequences")  + labs (caption="*Phylum Rhodophyta (included in this plot) is the only phylum with kingdom classification Plantae/Protista") + theme(plot.caption = element_text(hjust = 0.5))
+           geom_bar(stat="identity", fill="skyblue")+theme(axis.text.x=element_text(angle=90)) + ggtitle("Sequences per phylum for Protista") + coord_flip()+theme_bw()+ theme(plot.title = element_text(hjust = 0.5))  + xlab("Phylum") + ylab ("Number of sequences")  + labs (caption="*Phylum Rhodophyta (included here) is the only phylum classified as Plantae/Protista") + theme(plot.caption = element_text(hjust = 0.5))
 phyl_prot
 ```
 
