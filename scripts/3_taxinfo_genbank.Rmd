@@ -4,7 +4,7 @@ output: html_document
 ---
 ```{r, warning=FALSE, message=FALSE}
 library(readr)
-genbank_euk <- read_csv("../data/genbank/genbank_euk.csv")
+genbank_euk <- read.csv("../data/genbank/genbank_euk.csv")
 ```
 
 
