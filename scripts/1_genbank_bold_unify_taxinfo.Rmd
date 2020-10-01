@@ -1,8 +1,8 @@
 It was decided to keep the information as it is in BOLD, unless the data was missing and it was available in GENBANK
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 library(readr)
-genbank<-read_csv("../data/genbank/infotax_ncbi.csv")
-bold<-read_csv("../data/bold/taxinfo_bold.csv")
+genbank<-read.csv("../data/genbank/infotax_ncbi.csv")
+bold<-read.csv("../data/bold/taxinfo_bold.csv")
 #change genbank column names to match the data from genbank, to make future merging easier
 colnames(genbank)<-c("Tax_id","kingdom", colnames(bold[,2:8]))
 
@@ -170,8 +170,13 @@ gb_nobold= complement of gb_inbold
 ```{r, echo=F, warning=F, message=F}
 #Join all the data into a single data frame that has NCBI Taxonomy species id, kingdom, and the rest of the taxonomic information was taken from the BOLD table when available otherwise it was left as is, as retrieved from NCBI.
 
-all_species<-rbind( cbind (bold_ingb[,-9], gb_inbold[match(bold_ingb$species_name, gb_inbold$species_name ), 1] ), bold_nogb, gb_genus, gb_subfamily, gb_family, gb_order, gb_class )
 
+
+bold_gb<-cbind( bold_ingb[,-9],
+        gb_inbold[match(bold_ingb$species_name, gb_inbold$species_name ), 1])
+colnames(bold_gb)<-colnames(bold_nogb)
+all_species<-rbind (bold_gb, bold_nogb, gb_genus, gb_subfamily, gb_family, gb_order, gb_class)                    
+                  
 rm(bold_ingb, bold_nogb, gb_inbold, gb_genus, gb_genus_inbold, gb_genus_nobold, gb_subfamily, gb_subfamily_inbold, gb_subfamily_nobold, gb_family, gb_family_inbold, gb_family_nobold, gb_order, gb_order_inbold, gb_order_nobold, gb_class, gb_class_inbold, gb_class_nobold)
 
 #check for rows with missing kingdoms by phylum
