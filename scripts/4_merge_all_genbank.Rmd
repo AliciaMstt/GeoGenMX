@@ -42,7 +42,7 @@ genbank<-genbank[-17]
 Write complete data frame
 
 ```{r}
-write.csv(genbank, "../data/genbank/genbank_complete.csv")
+write_csv(genbank, "../data/genbank/genbank_complete.csv")
 
 ```
 
