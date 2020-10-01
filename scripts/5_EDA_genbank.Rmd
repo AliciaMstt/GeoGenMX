@@ -11,7 +11,7 @@ library(readr)
 
 #Obtain number of sequences per kingdom and per phylum
 
-genbank<-read_csv("../data/genbank/genbank_complete.csv")
+genbank<-read.csv("../data/genbank/genbank_complete.csv")
 ```
 Number of sequences per kingdom:
 ```{r, echo=FALSE, error=FALSE, message=FALSE}

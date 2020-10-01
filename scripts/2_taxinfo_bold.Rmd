@@ -94,7 +94,7 @@ phylumid_kingdom$kingdom[which(phylumid_kingdom$phylum_name=="Crenarchaeota"|phy
 
 
 For some reason when importing our list of phylum some of the original we had were left out, the list of phylum in the original data and the one imported from NCBI are compared, the missing phylum are then searched manually and added: 
-
+#check the part were these phyla are matched to find missing phyla
 ```{r, echo=F, warning=F, message=F}
 missing_phylum<-bold_phylum[which(bold_phylum %in% phylum_ncbi==F)]
 ```
@@ -110,14 +110,22 @@ Marine: NA (probably an environmental sample)
 
 The missing phylum are added:
 ```{r}
-phylumid_kingdom[44,]<-c(NA, "Zygomycota", "Fungi")
-phylumid_kingdom[45,]<-c(NA, "Pteridophyta", "Viridiplantae")
-phylumid_kingdom[46,]<-c(NA, "Magnoliophyta", "Viridiplantae")
-phylumid_kingdom[47,]<-c(NA, "Pinophyta", "Viridiplantae")
-phylumid_kingdom[48,]<-c(NA, "Heterokontophyta", "Protista")
-phylumid_kingdom[49,]<-c(NA, "Cryptophyta", "Protista")
-phylumid_kingdom[50,]<-c(NA, "Pyrrophycophyta", "Protista")
-phylumid_kingdom[51,]<-c(NA, "Marine", NA)
+
+missingphylum<-rbind( c(NA, "Zygomycota", "Fungi"),
+                       c(NA, "Pteridophyta", "Viridiplantae"),
+                       c(NA, "Magnoliophyta", "Viridiplantae"),
+                       c(NA, "Pinophyta", "Viridiplantae"),
+                      c(NA, "Heterokontophyta", "Protista"),
+                      c(NA, "Cryptophyta", "Protista"),
+                      c(NA, "Pyrrophycophyta", "Protista"),
+                       c(NA, "Marine", NA))
+colnames(missingphylum)<-c("phylum_id", "phylum_name", "kingdom")
+
+  
+  
+phylumid_kingdom<-rbind(phylumid_kingdom, missingphylum)
+
+
 
 ```
 

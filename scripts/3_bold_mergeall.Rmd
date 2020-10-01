@@ -1,8 +1,8 @@
 Read bold data and unified taxonomic information
 
 ```{r message=FALSE, echo=FALSE, warning=FALSE}
-bold_data<-read_csv("../data/bold/bold_data.csv")
-infotax <- read_csv("../data/taxonomic_info_all.csv")
+bold_data<-read.csv("../data/bold/bold_data.csv")
+infotax <- read.csv("../data/taxonomic_info_all.csv")
 ```
 
 ```{r message=F, echo=F, warning}
