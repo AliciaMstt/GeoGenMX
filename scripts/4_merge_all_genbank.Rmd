@@ -1,8 +1,8 @@
 
 ```{r, echo=FALSE}
 library(readr)
-genbank <- read_csv("../data/genbank/genbank_euk.csv")
-infotax_ncbi <- read_csv("../data/genbank/infotax_ncbi.csv")
+genbank <- read.csv("../data/genbank/genbank_euk.csv")
+infotax_ncbi <- read.csv("../data/genbank/infotax_ncbi.csv")
 ```
 
 Add taxonomic information from infotax_ncbi, to genbank data frame
@@ -42,7 +42,7 @@ genbank<-genbank[-17]
 Write complete data frame
 
 ```{r}
-write_csv(genbank, "../data/genbank/genbank_complete.csv")
+write.csv(genbank, "../data/genbank/genbank_complete.csv")
 
 ```
 
