@@ -2,7 +2,7 @@
 ```{r, echo=FALSE}
 library(readr)
 genbank <- read.csv("../data/genbank/genbank_euk.csv")
-infotax_ncbi <- read.csv("../data/genbank/infotax_ncbi.csv")
+infotax <- read.csv("../data/taxonomic_info_all.csv")
 ```
 
 Add taxonomic information from infotax_ncbi, to genbank data frame
@@ -19,22 +19,22 @@ genbank$tax_id2<-tax_list
 not_ncbi<-c("not_ncbi", NA, NA, NA, NA, NA, NA, NA, NA)
 
 #Data frame of all the ids with their taxonomic information
-infotax_ncbi<-rbind(infotax_ncbi, not_ncbi)
+infotax<-rbind(infotax, not_ncbi)
 
 #Match species id from data frame genbank, to data frame of taxonomic information
 
-matched_species<-match(genbank$tax_id2, infotax_ncbi$Tax_id)
+matched_species<-match(genbank$tax_id2, infotax$Tax_id)
 matched_species<-as.data.frame(matched_species)
 
 
 #Assign the NA row to the missing data 
-matched_species[which(is.na(matched_species)),]<-nrow(infotax_ncbi)
+matched_species[which(is.na(matched_species)),]<-nrow(infotax)
 
 #The complete taxonomic information data frame is created and joined with the genbank preexisting columns
 
-tax_df<-infotax_ncbi[matched_species$matched_species,]
+tax_df<-infotax[matched_species$matched_species,]
 genbank<-cbind(genbank, tax_df)
-genbank<-genbank[-17]
+genbank<-genbank[-20]
 
 ```
 
