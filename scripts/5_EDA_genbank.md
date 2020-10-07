@@ -3,16 +3,16 @@ EDA GENBANK DATA
 
 Number of sequences per kingdom:
 
-    ##            kingdom    n()
-    ## 1          Archaea   4883
-    ## 2        Chromista      3
-    ## 3            Fungi  31294
-    ## 4          Metazoa 211438
-    ## 5 Plantae/Protista    670
-    ## 6         Protista   3365
-    ## 7    Viridiplantae  24910
-    ## 8            Virus   6533
-    ## 9             <NA> 125994
+    ##            Kingdom Number_sequences
+    ## 1          Metazoa           211502
+    ## 2               NA           126342
+    ## 3            Fungi            31295
+    ## 4    Viridiplantae            24846
+    ## 5            Virus             6533
+    ## 6          Archaea             4883
+    ## 7         Protista             3017
+    ## 8 Plantae/Protista              670
+    ## 9        Chromista                3
 
 ![](5_EDA_genbank_files/figure-gfm/kingplot-1.png)<!-- -->![](5_EDA_genbank_files/figure-gfm/kingplot-2.png)<!-- -->
 
@@ -22,24 +22,24 @@ Information available for latitude and longitude:
     ## # Groups:   kingdom [9]
     ##    kingdom          latlon_info num_seqs
     ##    <chr>            <lgl>          <int>
-    ##  1 Archaea          FALSE           2929
-    ##  2 Archaea          TRUE            1954
-    ##  3 Chromista        FALSE              3
-    ##  4 Chromista        TRUE               0
+    ##  1 Metazoa          FALSE         194791
+    ##  2 Metazoa          TRUE           16711
+    ##  3 NA               FALSE          11812
+    ##  4 NA               TRUE          114530
     ##  5 Fungi            FALSE          27153
-    ##  6 Fungi            TRUE            4141
-    ##  7 Metazoa          FALSE         194727
-    ##  8 Metazoa          TRUE           16711
-    ##  9 Plantae/Protista FALSE            553
-    ## 10 Plantae/Protista TRUE             117
-    ## 11 Protista         FALSE           2571
-    ## 12 Protista         TRUE             794
-    ## 13 Viridiplantae    FALSE          22668
-    ## 14 Viridiplantae    TRUE            2242
-    ## 15 Virus            FALSE           6456
-    ## 16 Virus            TRUE              77
-    ## 17 <NA>             FALSE          11520
-    ## 18 <NA>             TRUE          114474
+    ##  6 Fungi            TRUE            4142
+    ##  7 Viridiplantae    FALSE          22604
+    ##  8 Viridiplantae    TRUE            2242
+    ##  9 Virus            FALSE           6456
+    ## 10 Virus            TRUE              77
+    ## 11 Archaea          FALSE           2929
+    ## 12 Archaea          TRUE            1954
+    ## 13 Protista         FALSE           2279
+    ## 14 Protista         TRUE             738
+    ## 15 Plantae/Protista FALSE            553
+    ## 16 Plantae/Protista TRUE             117
+    ## 17 Chromista        FALSE              3
+    ## 18 Chromista        TRUE               0
 
 ![](5_EDA_genbank_files/figure-gfm/kin_latlon_plot-1.png)<!-- -->
 
@@ -51,24 +51,24 @@ Information available for locality:
     ## # Groups:   kingdom [9]
     ##    kingdom          locality_info num_seqs
     ##    <chr>            <lgl>            <int>
-    ##  1 Archaea          FALSE             3500
-    ##  2 Archaea          TRUE              1383
-    ##  3 Chromista        FALSE                3
-    ##  4 Chromista        TRUE                 0
-    ##  5 Fungi            FALSE            27731
-    ##  6 Fungi            TRUE              3563
-    ##  7 Metazoa          FALSE           138549
-    ##  8 Metazoa          TRUE             72889
-    ##  9 Plantae/Protista FALSE              172
-    ## 10 Plantae/Protista TRUE               498
-    ## 11 Protista         FALSE             3019
-    ## 12 Protista         TRUE               346
-    ## 13 Viridiplantae    FALSE            21218
-    ## 14 Viridiplantae    TRUE              3692
-    ## 15 Virus            FALSE             6378
-    ## 16 Virus            TRUE               155
-    ## 17 <NA>             FALSE           124224
-    ## 18 <NA>             TRUE              1770
+    ##  1 Metazoa          FALSE            25012
+    ##  2 Metazoa          TRUE            186490
+    ##  3 NA               FALSE           121906
+    ##  4 NA               TRUE              4436
+    ##  5 Fungi            FALSE            14544
+    ##  6 Fungi            TRUE             16751
+    ##  7 Viridiplantae    FALSE            16285
+    ##  8 Viridiplantae    TRUE              8561
+    ##  9 Virus            FALSE             5438
+    ## 10 Virus            TRUE              1095
+    ## 11 Archaea          FALSE             2085
+    ## 12 Archaea          TRUE              2798
+    ## 13 Protista         FALSE             2709
+    ## 14 Protista         TRUE               308
+    ## 15 Plantae/Protista FALSE              161
+    ## 16 Plantae/Protista TRUE               509
+    ## 17 Chromista        FALSE                3
+    ## 18 Chromista        TRUE                 0
 
 ![](5_EDA_genbank_files/figure-gfm/kin_loc_plot-1.png)<!-- -->
 
@@ -80,7 +80,7 @@ Sequences from kingdom Metazoa
     ## # Groups:   phylum [18]
     ##    phylum          num_seqs
     ##    <chr>              <int>
-    ##  1 Arthropoda        172338
+    ##  1 Arthropoda        172402
     ##  2 Chordata           33054
     ##  3 Mollusca            2244
     ##  4 Platyhelminthes     1322
@@ -109,10 +109,10 @@ Sequences from kingdom Viridiplantae
     ## # Groups:   phylum [9]
     ##   phylum           num_seqs
     ##   <chr>               <int>
-    ## 1 Magnoliophyta       20737
+    ## 1 Magnoliophyta       20676
     ## 2 Pinophyta            2176
     ## 3 Pteridophyta          655
-    ## 4 Streptophyta          533
+    ## 4 Streptophyta          530
     ## 5 Chlorophyta           287
     ## 6 Marchantiophyta       191
     ## 7 Bryophyta             147
@@ -130,7 +130,7 @@ Sequences from kingdom Viridiplantae
     ##  1 Ascomycota            22980
     ##  2 Basidiomycota          5975
     ##  3 Glomeromycotina        1945
-    ##  4 NA                      223
+    ##  4 NA                      224
     ##  5 Zygomycota              100
     ##  6 Mucoromycota             43
     ##  7 Chytridiomycota           8
@@ -164,22 +164,22 @@ Sequences from kingdom Archaea
     ## 4 Thaumarchaeota            Archaea      158
     ## 5 Candidatus Micrarchaeota  Archaea        6
 
-![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 Sequences from kingdom Protista
 
-    ## # A tibble: 16 x 3
-    ## # Groups:   phylum [16]
+    ## # A tibble: 15 x 3
+    ## # Groups:   phylum [15]
     ##    phylum               kingdom          num_seqs
     ##    <chr>                <chr>               <int>
-    ##  1 Heterokontophyta     Protista             1148
+    ##  1 Heterokontophyta     Protista             1149
     ##  2 Apicomplexa          Protista              979
     ##  3 Rhodophyta           Plantae/Protista      670
-    ##  4 Ochrophyta           Protista              387
-    ##  5 Pyrrophycophyta      Protista              380
-    ##  6 Ciliophora           Protista              242
-    ##  7 Protista             Protista              119
-    ##  8 Bacillariophyta      Protista               62
+    ##  4 Pyrrophycophyta      Protista              380
+    ##  5 Ciliophora           Protista              242
+    ##  6 Protista             Protista              119
+    ##  7 Bacillariophyta      Protista               62
+    ##  8 Ochrophyta           Protista               39
     ##  9 Perkinsozoa          Protista               14
     ## 10 Chlorarachniophyceae Protista               12
     ## 11 Haptophyta           Protista                6
@@ -187,9 +187,8 @@ Sequences from kingdom Protista
     ## 13 Cercozoa             Protista                4
     ## 14 Choanozoa            Protista                4
     ## 15 Euglenida            Protista                1
-    ## 16 Heterokonta          Protista                1
 
-![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Sequences from kingdom Virus.
 
@@ -200,4 +199,4 @@ Sequences from kingdom Virus.
     ## 1 Negarnaviricota Virus       5692
     ## 2 Virus           Virus        841
 
-![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
