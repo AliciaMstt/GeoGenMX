@@ -43,7 +43,7 @@ phylumid_kingdom <- read_delim("../data/bold/phylumid_kingdom.tsv",  "\t", escap
 colnames(phylumid_kingdom)<-c("phylum_id", "phylum_name", "kingdom")
 ```
 
-Remove repeated phylums:
+Remove repeated phyla:
 There are therefore 3 repeated phylums, looking at them manually we find 
 Acanthocephala, Actinobacteria and Onycophora.
 
@@ -113,7 +113,7 @@ The missing phylum are added:
 
 missingphylum<-rbind( c(NA, "Zygomycota", "Fungi"),
                        c(NA, "Pteridophyta", "Viridiplantae"),
-                       c(NA, "Magnoliophyta", "Viridiplantae"),
+                       #c(NA, "Magnoliophyta", "Viridiplantae"),
                        c(NA, "Pinophyta", "Viridiplantae"),
                       c(NA, "Heterokontophyta", "Protista"),
                       c(NA, "Cryptophyta", "Protista"),

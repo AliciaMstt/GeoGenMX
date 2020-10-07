@@ -196,7 +196,11 @@ all_species[which(all_species$phylum_name=="Protista"),1]<-"Protista"
 #Virus=Virus
 #Protista=Protista
 
+###Add missing taxon
+#
+
 ```
+
 
 ```{r, echo=F, warning=F, message=F}
 write_csv(all_species, "../data/taxonomic_info_all.csv")

@@ -5,18 +5,64 @@ genbank <- read.csv("../data/genbank/genbank_euk.csv")
 infotax <- read.csv("../data/taxonomic_info_all.csv")
 ```
 
+
+
 Add taxonomic information from infotax_ncbi, to genbank data frame
 
 First extract ids from genbank. 
 
 ```{r, echo=F}
+
+
 tax_list<-genbank$tax_id
 #List of ids for the complete data set genbank
 tax_list<-gsub("taxon:", "", tax_list)
+#Missing ids, some of them are merged into new tax ids, these are corrected and then if still missing looked up manually
+
+tax_list[which(tax_list=="50411")]<-"2484686"
+tax_list[which(tax_list=="699569")]<-"2600353"
+tax_list[which(tax_list=="741545")]<-"2575810"
+tax_list[which(tax_list=="534400")]<-"2499207"
+tax_list[which(tax_list=="534399")]<-"2499206"
+tax_list[which(tax_list=="1661733")]<- "2599758"
+tax_list[which(tax_list=="40159")]<-"2608785"
+tax_list[which(tax_list=="1524649")]<-"1093983"
+tax_list[which(tax_list=="2053124")]<-"2053092"
+tax_list[which(tax_list=="1968190")]<-"2259400"
+tax_list[which(tax_list=="1968192")]<-"2259401"
+tax_list[which(tax_list=="96662")]<-"2528157"
+tax_list[which(tax_list=="318319")]<-"2018393"
+tax_list[which(tax_list=="318309")]<-"2018392"
+tax_list[which(tax_list=="318304")]<- "2018391"
+tax_list[which(tax_list=="6915")]<- "2585209"
+tax_list[which(tax_list=="219800")]<- "2320211"
+tax_list[which(tax_list=="715339")]<- "2008789"
+tax_list[which(tax_list=="354746")]<- "2233717"
+tax_list[which(tax_list=="354747")]<- "2233737"
+tax_list[which(tax_list=="195310")]<-"1983395"
+tax_list[which(tax_list=="28619")]<- "2599388"
+tax_list[which(tax_list=="305629")]<- "2488746"
+tax_list[which(tax_list=="511499")]<- "1465348"
+tax_list[which(tax_list=="1520288")]<- "2563996"
+tax_list[which(tax_list=="129205")]<- "2518009"
+tax_list[which(tax_list=="144045")]<- "615962"
+tax_list[which(tax_list=="257814")]<- "2608709"
+
+
+
+
 genbank$tax_id2<-tax_list
 
+
+```
+    
+  
+
+
+
+```{r, echo=FALSE}
 #Add row for sequences that dont have an ncbi taxonomic information id
-not_ncbi<-c("not_ncbi", NA, NA, NA, NA, NA, NA, NA, NA)
+not_ncbi<-c("notncbi", NA, NA, NA, NA, NA, NA, NA, NA)
 
 #Data frame of all the ids with their taxonomic information
 infotax<-rbind(infotax, not_ncbi)
@@ -33,9 +79,16 @@ matched_species[which(is.na(matched_species)),]<-nrow(infotax)
 #The complete taxonomic information data frame is created and joined with the genbank preexisting columns
 
 tax_df<-infotax[matched_species$matched_species,]
-genbank<-cbind(genbank, tax_df)
-genbank<-genbank[-20]
 
+
+genbank<-cbind(genbank, tax_df)
+#genbank<-genbank[-20]
+missingtax<-genbank[which(genbank$kingdom=="notncbi"),]
+missing_taxid<-missingtax$tax_id2
+missing_taxid<-unique(missing_taxid)
+
+#After checking the one with notncbi its an metagenomic fungi sample so the kingdom was manually added
+genbank[which(genbank$kingdom=="notncbi"),21]<-"Fungi"
 ```
 
 
