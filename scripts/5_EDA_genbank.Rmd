@@ -8,8 +8,10 @@ library(tidyr)
 library(magrittr)
 library(dplyr)
 library(readr)
+library(stringr)
 
 #Obtain number of sequences per kingdom and per phylum
+options(tibble.print_max = Inf)
 
 genbank<-read.csv("../data/genbank/genbank_complete.csv")
 ```
@@ -362,6 +364,277 @@ tax_info_sk_latlon<-tax_info_sk_latlon[ind_metvirfun,]
 tax_info_sk_latlon<-unique(tax_info_sk_latlon)
 #save to review at a later time
 write_csv(tax_info_sk_latlon,"../data/genbank/taxonomic_info_sk_latlon.csv")
+
+
+```
+
+
+```{r, echo=FALSE, error=FALSE, message= FALSE}
+#Filter to the phyla selected
+genbank_ph<-genbank %>% filter(phylum_name ==  "Chordata" | 
+                                 phylum_name ==  "Arthropoda" |
+                                 phylum_name ==  "Basidiomycota" |
+                                 phylum_name ==  "Ascomycota" |
+                                 phylum_name ==  "Magnoliophyta" |
+                                 phylum_name == "Pinophyta"
+                                 )
+
+
+#Filter model organisms
+model_org<-c('Ashbya gossypii', 'Aspergillus nidulans', 'Coprinus cinereus', 'Cryptococcus neoformans', 'Neurospora crassa', 'Saccharomyces cerevisiae', 'Schizophyllum commune', 'Schizosaccharomyces pombe', 'Arabidopsis thaliana', 'Selaginella moellendorffii', 'Brachypodium distachyon', 'Setaria viridis', 'Lotus japonicus', 'Lemna gibba', 'Medicago truncatula', 'Erythranthe guttata', 'Mimulus guttatus', 'Nicotiana benthamiana', 'Oryza sativa', 'Physcomitrella patens', 'Marchantia polymorpha', 'Amphimedon queenslandica',  'Aplysia cornigera', 'Aplysia fasciata', 'Caenorhabditis elegans', 'Drosophila melanogaster',  'Euprymna scolopes', 'Macrostomum lignano', 'Pristionchus pacificus', 'Scathophaga stercoraria', 'Schmidtea mediterranea', 'Felis sylvestris catus', 'Canis lupus familiaris', 'Mesocricetus auratus', 'Cavia porcellus', 'Oryzias latipes', 'Mus musculus', 'Heterocephalus glaber', 'Columba livia domestica', 'Rattus norvegicus', 'Rhesus macaque', 'Xenopus laevis', 'Xenopus tropicalis', 'Danio rerio', 'Taeniopygia guttata', 'Homo sapiens')
+genbank_ph<-genbank_ph[-(which(!(is.na(match(genbank_ph$species_name, model_org))))),]
+
+```
+
+```{r, echo=FALSE, error=FALSE, message= FALSE}
+
+#Marker filtering
+
+#Since the biodiversity analysis will be done merging the data from genbank and from BOLD, the standardization and search of marker names is done taking the markers available in BOLD as reference. BOLD as a database is much more focused on taxonomic identification and biodiversity, therefore it has a much more curated list of genetic markers available, whereas genbank serves as a repository of all kinds of genetic sequences from all kinds of studies, the range of genetic markers available is huge, so in order to have consistency the markers from BOLD will serve as reference to look and select the markers from Genebank. 
+
+
+
+#Markers from BOLD
+
+##    marker         `n()`
+##    <chr>          <int>                alias
+##  1 COI-5P         65816          COX1,  cytochrome c oxidase I , cytochrome c oxidase subunit I
+##  2 matK            2420          maturase k
+##  3 ITS2            1859          internal transcribed spacer 2
+##  4 rbcLa           1846          Ribulose-1,5-bisphosphate carboxylase oxygenase
+##  5 ITS             1419          internal transcribed spacer
+##  6 rbcL             326          Ribulose-1,5-bisphosphate carboxylase oxygenase
+##  7 28S-D2           320          28S ribosomal RNA
+##  8 CYTB             152          Cytochrome b
+## 9 28S-D2-D3        139           28S rRNA 28S ribosomal RNA
+## 10 trnD-trnY-trnE   102          trnD-trnY-trnE intergenic spacer
+## 11 trnH-psbA        102          trnH-psbA intergenic spacer
+## 12 ycf1             102          ycf1 ycf1a ycf1b
+## 13 COI-3P            93          cytochrome c oxidase subunit I 3′P region
+## 14 5.8S              59          5.8S rRNA 5.8S ribosomal RNA         
+## 15 ITS1              59         internal transcribed spacer
+## 16 ND2               42
+## 17 H3                37
+## 18 12S               31
+## 19 Rho               19
+## 20 DBY-EX7-8         14
+## 21 18S               12
+## 22 28S               12
+## 23 atp6               6
+## 24 16S                5
+## 25 RAG2               5
+## 26 NGFB               3
+## 27 R35                3
+```
+
+```{r, echo=FALSE, error=FALSE, message= FALSE}
+genbank_ph$definition_1<- genbank_ph$definition
+genbank_ph$marker<-NA
+genbank_ph[which(!is.na(genbank_ph$sequence)),33]<-""
+genbank_m<-genbank_ph %>% filter(!(is.na(marker)))
+
+
+
+
+genbank_m[which(grepl("(c|C)ytochrome c oxidase (I|1)|(c|C)ytochrome c oxidase subunit (I|1) |(c|C)ytochrome oxidase subunit (I|1)|COI|COX(1|I)",genbank_m$definition)),33]<-paste("COI", genbank_m[which(grepl("(c|C)ytochrome c oxidase (I|1)|(c|C)ytochrome c oxidase subunit (I|1) |(c|C)ytochrome oxidase subunit (I|1)|COI|COX(1|I)",genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("maturase(k|K)|mat(k|K)", genbank_m$definition)),33]<-paste("matK", genbank_m[which(grepl("maturase(k|K)|mat(k|K)", genbank_m$definition)),33], sep = ",")
+
+
+genbank_m[which(grepl("ITS([[:blank:]]|,)|internal transcribed spacer", genbank_m$definition)),33]<-paste("ITS", genbank_m[which(grepl("ITS([[:blank:]]|,)|internal transcribed spacer", genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("ITS1|ITS-1|ITS[[:blank:]]1|internal transcribed spacer 1", genbank_m$definition)),33]<- paste("ITS1", genbank_m[which(grepl("ITS1|ITS-1|ITS[[:blank:]]1|internal transcribed spacer 1", genbank_m$definition)),33], sep = ",")
+                                                                                                                     
+genbank_m[which(grepl("ITS2|ITS-2|ITS[[:blank:]]2|internal transcribed spacer 2", genbank_m$definition)),33]<- paste("ITS2", genbank_m[which(grepl("ITS2|ITS-2|ITS[[:blank:]]2|internal transcribed spacer 2", genbank_m$definition)),33], sep = ",")
+                                                                                                                     
+genbank_m[which(grepl("rbc(l|L)|(R|r)ibulose-1,5-bisphosphate carboxylase oxygenase|(R|r)ibulose", genbank_m$definition)),33]<- paste("rbcL", genbank_m[which(grepl("rbc(l|L)|(R|r)ibulose-1,5-bisphosphate carboxylase oxygenase|(R|r)ibulose", genbank_m$definition)),33], sep = ",")
+
+
+genbank_m[which(grepl("28S | 28S ribosomal RNA", genbank_m$definition)),33]<- paste("28S", genbank_m[which(grepl("28S | 28S ribosomal RNA", genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("(C|c)yt(B|b)|(C|c)ytochrome[[:blank:]](B|b)", genbank_m$definition)),33]<- paste("CYTB", genbank_m[which(grepl("(C|c)yt(B|b)|(C|c)ytochrome[[:blank:]](B|b)", genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("ycf1", genbank_m$definition)),33]<- paste("ycf1", genbank_m[which(grepl("ycf1", genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("5.8S", genbank_m$definition)),33]<- paste("5.8S", genbank_m[which(grepl("5.8S", genbank_m$definition)),33], sep=",")
+
+genbank_m[which(grepl("trnD", genbank_m$definition)),33]<- paste("trnD", genbank_m[which(grepl("trnD", genbank_m$definition)),33], sep = ",")
+
+genbank_m[which(grepl("trnY", genbank_m$definition)),33]<-paste( "trnY", genbank_m[which(grepl("trnY", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("trnE", genbank_m$definition)),33]<-paste( "trnE", genbank_m[which(grepl("trnE", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("trnH", genbank_m$definition)),33]<- paste("trnH", genbank_m[which(grepl("trnH", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("trnT", genbank_m$definition)),33]<- paste("trnT", genbank_m[which(grepl("trnT", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("trnL", genbank_m$definition)),33]<- paste("trnL", genbank_m[which(grepl("trnL", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("psbA", genbank_m$definition)),33]<-paste( "psbA", genbank_m[which(grepl("psbA", genbank_m$definition)),33], sep = ",")
+genbank_m[which(grepl("18S", genbank_m$definition)),33]<- paste("18S", genbank_m[which(grepl("18S", genbank_m$definition)),33], sep=",")
+genbank_m[which(grepl("16S", genbank_m$definition)),33]<- paste("16S", genbank_m[which(grepl("16S", genbank_m$definition)),33], sep=",")
+genbank_m[which(grepl("Rho|rhodopsin", genbank_m$definition)),33]<- paste("Rho",genbank_m[which(grepl("Rho|rhodopsin", genbank_m$definition)),33] , sep=",")
+genbank_m[which(grepl("26S", genbank_m$definition)),33]<- paste("26S",genbank_m[which(grepl("26S", genbank_m$definition)),33] , sep=",")
+genbank_m[which(genbank_m$marker == ""), 33]<-"other"
+
+
+
+
+
+genbank_markers<-genbank_m %>%group_by(marker)%>% summarise(n())
+colnames(genbank_markers)<-c("Marker", "Number_sequences")
+
+
+
+other<-genbank_m%>%filter(marker=="other")%>% group_by(definition_1)%>% summarise(n())
+
+
+```
+
+
+Genetic markers available for all organisms:
+The following analysis were made after excluding all the records that did not have any type of genetic sequence available, and only included
+For the data retrieved from Genbank, some of the sequences retrieved span more than one genetic marker, this was annotated accordingly in the database and is reflected on the marker column.
+```{r, echo=F, message=F, warning=F}
+genbank_markers%>%arrange(desc(Number_sequences))
+```
+
+```{r, echo=F, message=F, warning=F}
+metazoa_markers<-genbank_m %>% filter(kingdom=="Metazoa") %>% group_by(marker) %>% summarise(n())
+colnames(metazoa_markers)<-c("Marker", "Number_sequences")
+
+metazoa_markers<-metazoa_markers%>% arrange(desc(Number_sequences))
+
+
+metazoa_latlon_markers<-genbank_m %>% filter(kingdom=="Metazoa") %>% group_by(marker, latlon_info) %>% summarise (n())
+colnames(metazoa_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
+metazoa_latlon_markers[which(is.na(metazoa_latlon_markers$Marker)),1]<-"NA"
+metazoa_latlon_markers$total<-metazoa_markers[match(metazoa_latlon_markers$Marker, metazoa_markers$Marker),2]
+metazoa_latlon_markers<-metazoa_latlon_markers %>% arrange(desc(total))
+
+metazoa_loc_markers<-genbank_m %>% filter(kingdom=="Metazoa") %>% group_by(marker, locality_info) %>% summarise (n())
+colnames (metazoa_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
+metazoa_loc_markers[which(is.na(metazoa_loc_markers$Marker)),1]<-"NA"
+metazoa_loc_markers$total<-metazoa_markers[match(metazoa_loc_markers$Marker, metazoa_markers$Marker),2]
+metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(total))
+
+```
+
+Number of sequences per marker for Metazoa
+```{r, echo=F, message=F, warning=F}
+metazoa_markers
+metazoa_latlon_markers[,1:3]
+metazoa_loc_markers[,1:3]
+met_marker_plot<-ggplot(data=metazoa_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+           geom_bar(stat="identity", fill="skyblue")+
+  ggtitle("Number of sequences per marker for Metazoa") + xlab("Marker") + ylab("Number of sequences") +
+  coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Chordata and Arthropoda. 
+                         **Only the twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
+met_marker_plot
+
+metmarker_latlon_plot<-ggplot(metazoa_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Metazoa") +
+  theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "*Only the twenty most abundant markers are included in this plot") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+metmarker_latlon_plot
+
+
+metmarker_loc_plot<-ggplot(metazoa_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Metazoa") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+metmarker_loc_plot
+
+
+```
+
+
+
+Number of sequences per marker for Viridiplantae
+```{r, echo=F, message=F, warning=F}
+
+viridiplantae_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker) %>% summarise(n())
+colnames(viridiplantae_markers)<-c("Marker", "Number_sequences")
+
+viridiplantae_markers<-viridiplantae_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Number_sequences))
+
+
+viridiplantae_latlon_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, latlon_info) %>% summarise (n())
+colnames(viridiplantae_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
+viridiplantae_latlon_markers[which(is.na(viridiplantae_latlon_markers$Marker)),1]<-"NA"
+viridiplantae_latlon_markers$total<-viridiplantae_markers[match(viridiplantae_latlon_markers$Marker, viridiplantae_markers$Marker),2]
+viridiplantae_latlon_markers<-viridiplantae_latlon_markers %>% arrange(desc(total))
+
+viridiplantae_loc_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, locality_info) %>% summarise (n())
+colnames (viridiplantae_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
+viridiplantae_loc_markers[which(is.na(viridiplantae_loc_markers$Marker)),1]<-"NA"
+viridiplantae_loc_markers$total<-viridiplantae_markers[match(viridiplantae_loc_markers$Marker, viridiplantae_markers$Marker),2]
+viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(total))
+
+
+```
+
+
+```{r, echo=F, message=F, warning=F}
+viridiplantae_markers
+viridiplantae_latlon_markers[,1:3]
+viridiplantae_loc_markers[,1:3]
+virp_marker_plot<-ggplot(data=viridiplantae_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+           geom_bar(stat="identity", fill="skyblue")+
+  ggtitle("Number of sequences per marker for Viridiplantae") + xlab("Marker") + ylab("Number of sequences") +
+  coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Pinophyta and Magnoliophyta.
+                       **Only the top twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
+virp_marker_plot
+
+virpmarker_latlon_plot<-ggplot(viridiplantae_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Viridiplantae") +
+  theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "*Only the twenty most abundant markers are included in this plot.") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+virpmarker_latlon_plot
+
+
+virpmarker_loc_plot<-ggplot(viridiplantae_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Viridiplantae") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot.")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+virpmarker_loc_plot
+
+
+```
+
+
+```{r, echo=F, message=F, warning=F}
+
+fungi_markers<-genbank_m %>% filter(kingdom=="Fungi") %>% group_by(marker) %>% summarise(n())
+colnames(fungi_markers)<-c("Marker", "Number_sequences")
+
+fungi_markers<-fungi_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Number_sequences))
+
+
+fungi_latlon_markers<-genbank_m %>% filter(kingdom=="Fungi") %>% group_by(marker, latlon_info) %>% summarise (n())
+colnames(fungi_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
+fungi_latlon_markers$total<-fungi_markers[match(fungi_latlon_markers$Marker, fungi_markers$Marker),2]
+fungi_latlon_markers<-fungi_latlon_markers %>% arrange(desc(Marker)) %>% arrange(desc(total))
+
+
+
+fungi_loc_markers<-genbank_m %>% filter(kingdom=="Fungi") %>% group_by(marker, locality_info) %>% summarise (n())
+colnames (fungi_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
+fungi_loc_markers$total<-fungi_markers[match(fungi_loc_markers$Marker, fungi_markers$Marker),2]
+fungi_loc_markers<-fungi_loc_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
+
+
+```
+Number of sequences per marker for Fungi
+```{r, echo=F, message=F, warning=F}
+fungi_markers
+fungi_latlon_markers[,1:3]
+fungi_loc_markers[,1:3]
+fungi_marker_plot<-ggplot(data=fungi_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+           geom_bar(stat="identity", fill="skyblue")+
+  ggtitle("Number of sequences per marker for Fungi") + xlab("Marker") + ylab("Number of sequences") +
+  coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Ascomycota and Basidiomycota.
+                      **Only the twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
+fungi_marker_plot
+
+fungimarker_latlon_plot<-ggplot(fungi_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+ geom_bar(stat="identity", position = "dodge") + 
+  scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Fungi") +
+  theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "Only the twenty most abundant markers are included in this plot.") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+fungimarker_latlon_plot
+
+
+fungimarker_loc_plot<-ggplot(fungi_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Fungi") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+fungimarker_loc_plot
 
 
 ```
