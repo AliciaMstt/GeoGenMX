@@ -1,0 +1,141 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+library(magrittr)
+library(dplyr)
+library(readr)
+
+bold<-read.csv( "../data/bold/bold_ph.csv")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#Filter to keep only the phyla we want
+
+#Exclude columns we wont use
+#The dataset has 84265 records, no single column has 84,265 unique records but when combining, when imported from the previous script an additional column with row names is included. column 2(process id), and column 54(sequence id) it results in 84265 unique ids, also column 2 (process id) and column 55(markercode)
+
+#columns kept
+#2) process id: BOLD Process IDs are unique codes automatically generated for each new record added to a project. They serve to connect specimen information, such as taxonomy, collection data and images, to the DNA barcode sequence for that specimen. BOLD Process IDs consist of a standard format including the project code and sequential numbers, followed by the year the record was added to the database. For example, the first record uploaded to project PROJ in 2012 would be assigned BOLD Process ID PROJ001-12 . This format ensures BOLD Process IDs are always unique in the system, as well as identifying the year the record was uploaded and the original project it was uploaded to.
+#54)sequence id:sequence identifier, combined with process id yields a unique identifier for all records in database
+#55) markercode: information on the genetic marker of the deposited sequence
+#78)marker: column generated from merging information from 55)markercode and 65)markercodes
+#9) bin uri: bin identifier. The Barcode Index Number System is an online framework that clusters barcode sequences algorithmically, generating a web page for each cluster. Since clusters show high concordance with species, this system can be used to verify species identifications as well as document diversity when taxonomic information is lacking. 
+#31) notes: Notes about the primer.
+#32) lat: The geographic latitude (in decimal degrees) of the geographic center of a location.
+#33)lon: The geographic longitude (in decimal degrees) of the geographic center of a location.
+
+##idea:measure genetic diversity for certain species on the same lat lon range along an elevation depth gradiente
+#36) elev: Elevation of sampling site.,Measured in meters relative to sea level.,Negative values indicate a position below sea level
+#37) depth: For organisms collected beneath the surface of a water body.,Measured in meters below surface of water
+#40) Country: The full, unabbreviated name of the country, major political unit, or ocean in which the organism was collected.
+#41) province_state: The full, unabbreviated name of the state, province, territory, or prefecture (i.e., the next smallest political region below Country) in which the organism was collected.
+#42) region: The full, unabbreviated name of the county, shire, municipality, or park (i.e., the next smallest political region below province/state) in which the organism was collected.
+#43) sector: The full, unabbreviated name of the lake, conservation area or sector of park in which the organism was collected.
+#44) exactsite: Additional text descriptions regarding the exact location of the collection site relative to a geographic or biologically relevant landmark.
+
+##idea compare field to data from genbank
+#56) genbank accession: genbank accession for sequences also deposited in genbank
+#57) nucleotides: nucleotides in plain text format with IUPAC Nomenclature for the record's sequence
+#63) directions: Forward or Reverse.
+#64) seq primers: Primer used in the sequencing process.
+#65) markercodes:information on the genetic marker of the deposited sequence
+#66) kingdom: taxonomic kingdom from the specimen (field taken from genbank database)
+
+# The following columns 67-74 consist of full taxonomy:
+#Full Taxonomy* Full scientific name for each rank, consisting of phylum*, class, order, family, subfamily (optional), genus, and species. Interim names may be used up to family level. Interim names should contain non- Linnean characters such as numbers, punctuation and/or extra capitalization. Taxonomists are encouraged to append interim names with initials. (example: Bos sp. 1KHR)
+#67) phylum_name:
+#68) class_name:
+#69) order_name:
+#70) family_name:
+#71) subfamily_name:
+#72) genus_name:
+#73) species_name:
+#74) subspecies_name:
+
+#75) Tax_id: unique species tax_id taken from genbank
+#76)latlon_info: boolean whether or not information for latitude or longitude exists
+#77)locality_info: boolean whether or not information to pinpoint locality exists
+#78)marker: combined information on loci or genetic marker, merged from markercode and markercodes
+
+bold<-bold[,c(2,54,55,78,9,31:33,36,37,40:44,56,57,63:78)]
+
+```
+
+
+```{r, echo=F, message=F, warning=F}
+
+```
+
+
+Geografos reporte 
+Se trabajó con la base de datos BOLD qué contiene registros correspondientes a localidades con información genética de especies en ambientes tanto terrestres (continentales) como insulares (territorios en islas) así como TAMBIÉN aquellos que podrían estar ubicados en zonas o regiones marinas; al interior o aledaños al territorio de la república mexicana.
+
+La etapa de validación, consiste básicamente en una serie de procedimientos en donde se conservan los campos de la base de datos original pero se anexan algunos otros campos que complementan y describen el procedimiento de validación espacial realizado.
+
+En esta etapa se consideraron sólo los registros qué presentaban coordenadas geográficas; 16,192 localidades, de estos:
+•       15,893  registros (localidades) qué resultaron ubicados (por intersección espacial) de manera correcta al interior del territorio continental de la república mexicana; en territorio insular; o bien en aguas del territorio marítimo de la república mexicana. Estos registros entonces resultaron ser CONSISTENTES y pertenecen de manera precisa a alguna de las ecorregiones terrestres y/o marítimas (según la cobertura vectorial utilizada para los análisis espaciales ejecutados “Zonas Ecológicas de México”, UNAM, 2009. Escala 1:1000000).
+•       299  registros (localidades) qué resultaron ubicados (por intersección espacial) fuera del territorio continental de la república mexicana; del territorio insular indicado; qué se ubican de manera precisa en territorio continental o en aguas del territorio marítimo de otro país; estos registros entonces resultaron ser INCONSISTENTES ya qué no pertenecen de a ninguna de las ecorregiones terrestres y/o marítimas del país; según la cobertura vectorial utilizada para los análisis espaciales ejecutados. También está el caso de aquellos registros qué se ubican en un estado distinto al indicado en la descripción original. En suma; todos estos registros fueron integrados a los procedimientos de georreferenciación o asignación de nuevas coordenadas geográficas; con base en la información de la descripción textual de dichos sitios.
+
+Anexo los shapefiles de las localidades CONSISTENTES y también aquel qué agrupa a los INCONSISTENTES (en el reporte "word" se explica a detalle cuando se consideran de una u otra categoria):
+- Loc_Bold_Val_MUN2015_SpatialJoin_ERTyERM_Val_Est_CONS (con los 15,893 registros)
+- Loc_Bold_Val_MUN2015_SpatialJoin_ERTyERM_Val_Est_INCONS (con los 299 registros)
+
+La tabla (fromato excel): "XY_BOLD_Etapas_Validacion_ZonEcoTerMar.xls" con las pestañas u hojas de calculo qué presentan las categorias de la validación de localidades. Con la tabla que ya se puede trabajar de manera confiable es: [Bold_VAL_ZonEcoTerMar_CONS]
+##############################
+Cuauhtémoc:
+Con base en el shapefile de INCONSISTENTES podrás empezar a georreferenciar los 299 registros; los cuales también están en el excel corresponde y a su vez en la hoja de cálculo: [Bold_VAL_ZonEcoTerMar_INCONS]. Sí vas a corregir descripción, estado, municipio y sobre todo coordenadas geográficas a dichos sitios inconsistentes entónces agregaras campos adjuntos (con la descripción CORR_) para así poder diferenciar lo original de lo que se corrija ok.
+
+La info esta en la ruta:
+
+J:\USUARIOS\CONABIO\CARB\AMastretta\DIVERSIDAD GENÉTICA_BOLD & GENBANK\ENTREGA_BOLD_Val_ZonEcoTerMar_06Dic2018
+
+Saludos y cualquier duda con la info me dicen y lo vemos.
+
+PARTE 2 
+
+Alicia:
+
+ 
+
+Les hago entrega de los registros trabajados en las base de datos Bold_VAL_ZonEcoTerMar_INCONS  para colectas realizadas en varios estados y zonas insulares de la República Mexicana.
+
+
+
+Por lo que hace a los resultados de los procedimientos de validación y/o georreferenciación realizados para los registros de las base de datos indicada, se encuentran señalados en las siguiente tabla:
+
+ 
+
+
+
+
+
+Procedimiento:                                                            Localidades:
+Sitios que resultaron Validos a nivel estatal y municipal,                     98
+con el auxilio de la sobre posición de coberturas de límites estatales 
+y municipales (escala 1: 250 000)
+
+
+
+Asignación de coordenadas sitio a registros de localidades (con duplicados)   161
+por medio de la utilización de coberturas cartográficas actualizadas 
+de temáticas diversas
+
+
+
+Localidades (con duplicados) a las cuales NO fue posible asignarles coordenadas   40
+por presentar inconsistencias o insuficiencia de información y que fueron 
+calificadas como: No Georreferenciables.
+
+
+
+Total de localidades trabajadas en diferentes procedimientos                   299
+de validación y/o georreferenciación
+
+
+
+Les comento que la información corregida de la base de datos, se encuentra en los campos "Corr" de la tabla de (access) que envío, misma que las puedes encontrar en la carpeta con el nombre Entrega_Final_Loc_Bold_Incons, en la ruta: J:\USUARIOS\CONABIO\CARB\AMastretta\DIVERSIDAD GENÉTICA_BOLD & GENBANK\ENTREGA_BOLD_Val_ZonEcoTerMar_06Dic2018\Entrega_Final_Loc_Bold_Incons.
