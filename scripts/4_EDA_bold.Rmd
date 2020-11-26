@@ -10,6 +10,7 @@ library(dplyr)
 library(readr)
 
 #Obtain number of sequences per kingdom and per phylum
+options(tibble.print_max = Inf)
 
 bold<-read.csv("../data/bold/bold_complete.csv")
 ```
@@ -270,8 +271,11 @@ phyl_arc<-ggplot(data=king_phyl[which(king_phyl$kingdom=="Archaea" & !is.na(king
 ```
 
 Detailed analysis into phyla of interest:
+
 Metazoa: Chordata and Arthropoda
+
 Viridiplantae: Magnoliophyta and Pinophyta
+
 Fungi: Ascomycota and Basidiomycota
 ```{r, echo=F, message=F, warning=F}
 #Filter to keep phyla we want
@@ -294,14 +298,17 @@ bold_ph<-bold_ph[-(which(!(is.na(match(bold_ph$species_name, model_org))))),]
 ```
 
 Analysis on genetic markers available for the selected organisms.
+
+
 ```{r, echo=F, message=F, warning=F}
 bold_ph$marker<-bold_ph$markercode
-bold_ph[which(is.na(bold_ph$marker)),30]<-bold_ph[which(is.na(bold_ph$marker)),18]
+bold_ph[which(is.na(bold_ph$marker)),77]<-bold_ph[which(is.na(bold_ph$marker)),64]
 bold_ph$marker<-sub("\\|.*", "", bold_ph$marker)
 
 #write file bold_ph which filters phyla we want and exclude model organisms and the added column that combines the marker information from columns  markercode and marker_codes
 #write bold data with the column 
 write.csv(bold_ph, "../data/bold/bold_ph.csv")
+
 
 metazoa_markers<-bold_ph %>% filter(kingdom=="Metazoa") %>% group_by(marker) %>% summarise(n())
 colnames(metazoa_markers)<-c("Marker", "Number_sequences")
@@ -321,6 +328,12 @@ metazoa_loc_markers[which(is.na(metazoa_loc_markers$Marker)),1]<-"NA"
 metazoa_loc_markers$total<-metazoa_markers[match(metazoa_loc_markers$Marker, metazoa_markers$Marker),2]
 metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(total))
 
+
+```
+
+Genetic markers available for all organisms:
+```{r, echo=F, message=F, warning=F}
+bold_ph%>%group_by(marker)%>% summarise(n())%>%arrange(desc(`n()`))
 
 ```
 Number of sequences per marker for Metazoa
@@ -370,7 +383,7 @@ viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(total))
 
 
 ```
-Number of sequences per marker for Viridiplantae
+
 ```{r, echo=F, message=F, warning=F}
 
 viridiplantae_latlon_markers[,1:3]
@@ -393,7 +406,7 @@ virpmarker_loc_plot
 
 
 ```
-Number of sequences per marker for Fungi
+
 ```{r, echo=F, message=F, warning=F}
 
 fungi_markers<-bold_ph %>% filter(kingdom=="Fungi") %>% group_by(marker) %>% summarise(n())
@@ -454,4 +467,4 @@ fungimarker_loc_plot<-ggplot(fungi_loc_markers[,], aes(factor(reorder(Marker, to
 fungimarker_loc_plot
 
 
-````
+```

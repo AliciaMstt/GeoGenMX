@@ -156,11 +156,53 @@ Sequences from kingdom Archaea
     ##   <chr>         <chr>      <int>
     ## 1 Crenarchaeota Archaea        2
 
-Detailed analysis into phyla of interest: Metazoa: Chordata and
-Arthropoda Viridiplantae: Magnoliophyta and Pinophyta Fungi: Ascomycota
-and Basidiomycota
+Detailed analysis into phyla of interest:
+
+Metazoa: Chordata and Arthropoda
+
+Viridiplantae: Magnoliophyta and Pinophyta
+
+Fungi: Ascomycota and Basidiomycota
 
 Analysis on genetic markers available for the selected organisms.
+
+Genetic markers available for all organisms:
+
+    ## # A tibble: 32 x 2
+    ##    marker         `n()`
+    ##    <chr>          <int>
+    ##  1 COI-5P         70181
+    ##  2 <NA>            4877
+    ##  3 matK            2423
+    ##  4 ITS2            1859
+    ##  5 rbcLa           1846
+    ##  6 ITS             1419
+    ##  7 28S-D2           326
+    ##  8 rbcL             326
+    ##  9 CYTB             153
+    ## 10 28S-D2-D3        139
+    ## 11 trnD-trnY-trnE   102
+    ## 12 trnH-psbA        102
+    ## 13 ycf1             102
+    ## 14 COI-3P            94
+    ## 15 5.8S              59
+    ## 16 ITS1              59
+    ## 17 ND2               42
+    ## 18 H3                37
+    ## 19 12S               31
+    ## 20 Rho               19
+    ## 21 28S               15
+    ## 22 DBY-EX7-8         14
+    ## 23 18S               12
+    ## 24 atp6               6
+    ## 25 16S                5
+    ## 26 RAG2               5
+    ## 27 NGFB               3
+    ## 28 R35                3
+    ## 29 COII               2
+    ## 30 COXIII             2
+    ## 31 EF1-alpha          1
+    ## 32 trnL-F             1
 
 Number of sequences per marker for Metazoa
 
@@ -168,35 +210,77 @@ Number of sequences per marker for Metazoa
     ## # Groups:   Marker [21]
     ##    Marker    latlon_info Number_sequences
     ##    <chr>     <lgl>                  <int>
-    ##  1 COI-5P    FALSE                   7595
-    ##  2 COI-5P    TRUE                   58221
-    ##  3 NA        FALSE                    368
-    ##  4 NA        TRUE                    8882
+    ##  1 COI-5P    FALSE                   7634
+    ##  2 COI-5P    TRUE                   62547
+    ##  3 NA        FALSE                    328
+    ##  4 NA        TRUE                    4546
     ##  5 28S-D2    FALSE                      4
-    ##  6 28S-D2    TRUE                     316
+    ##  6 28S-D2    TRUE                     322
     ##  7 CYTB      FALSE                     14
-    ##  8 CYTB      TRUE                     138
+    ##  8 CYTB      TRUE                     139
     ##  9 28S-D2-D3 FALSE                      7
     ## 10 28S-D2-D3 TRUE                     132
-    ## # ... with 22 more rows
+    ## 11 COI-3P    FALSE                     92
+    ## 12 COI-3P    TRUE                       2
+    ## 13 ND2       TRUE                      42
+    ## 14 H3        FALSE                      8
+    ## 15 H3        TRUE                      29
+    ## 16 12S       TRUE                      31
+    ## 17 Rho       FALSE                     19
+    ## 18 28S       FALSE                      2
+    ## 19 28S       TRUE                      12
+    ## 20 DBY-EX7-8 FALSE                      1
+    ## 21 DBY-EX7-8 TRUE                      13
+    ## 22 18S       FALSE                      6
+    ## 23 18S       TRUE                       6
+    ## 24 atp6      FALSE                      6
+    ## 25 16S       FALSE                      1
+    ## 26 16S       TRUE                       4
+    ## 27 RAG2      TRUE                       5
+    ## 28 NGFB      TRUE                       3
+    ## 29 R35       TRUE                       3
+    ## 30 COII      FALSE                      2
+    ## 31 COXIII    FALSE                      2
+    ## 32 EF1-alpha TRUE                       1
 
     ## # A tibble: 32 x 3
     ## # Groups:   Marker [21]
     ##    Marker    locality_info Number_sequences
     ##    <chr>     <lgl>                    <int>
-    ##  1 COI-5P    FALSE                    19980
-    ##  2 COI-5P    TRUE                     45836
-    ##  3 NA        FALSE                      138
-    ##  4 NA        TRUE                      9112
+    ##  1 COI-5P    FALSE                    20037
+    ##  2 COI-5P    TRUE                     50144
+    ##  3 NA        FALSE                       81
+    ##  4 NA        TRUE                      4793
     ##  5 28S-D2    FALSE                        4
-    ##  6 28S-D2    TRUE                       316
+    ##  6 28S-D2    TRUE                       322
     ##  7 CYTB      FALSE                        8
-    ##  8 CYTB      TRUE                       144
+    ##  8 CYTB      TRUE                       145
     ##  9 28S-D2-D3 TRUE                       139
     ## 10 COI-3P    FALSE                        4
-    ## # ... with 22 more rows
+    ## 11 COI-3P    TRUE                        90
+    ## 12 ND2       FALSE                       11
+    ## 13 ND2       TRUE                        31
+    ## 14 H3        TRUE                        37
+    ## 15 12S       FALSE                       31
+    ## 16 Rho       FALSE                        1
+    ## 17 Rho       TRUE                        18
+    ## 18 28S       FALSE                        5
+    ## 19 28S       TRUE                         9
+    ## 20 DBY-EX7-8 TRUE                        14
+    ## 21 18S       FALSE                        9
+    ## 22 18S       TRUE                         3
+    ## 23 atp6      FALSE                        2
+    ## 24 atp6      TRUE                         4
+    ## 25 16S       FALSE                        5
+    ## 26 RAG2      FALSE                        2
+    ## 27 RAG2      TRUE                         3
+    ## 28 NGFB      TRUE                         3
+    ## 29 R35       TRUE                         3
+    ## 30 COII      FALSE                        2
+    ## 31 COXIII    FALSE                        2
+    ## 32 EF1-alpha TRUE                         1
 
-![](4_EDA_bold_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-16-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-16-3.png)<!-- -->
+![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-3.png)<!-- -->
 
 Number of sequences per marker for Viridiplantae
 
@@ -205,7 +289,7 @@ Number of sequences per marker for Viridiplantae
     ##    Marker         latlon_info Number_sequences
     ##    <chr>          <lgl>                  <int>
     ##  1 matK           FALSE                   1125
-    ##  2 matK           TRUE                    1295
+    ##  2 matK           TRUE                    1298
     ##  3 rbcLa          FALSE                    142
     ##  4 rbcLa          TRUE                    1704
     ##  5 ITS2           FALSE                   1675
@@ -219,7 +303,7 @@ Number of sequences per marker for Viridiplantae
     ## 13 ycf1           FALSE                      9
     ## 14 ycf1           TRUE                      93
     ## 15 NA             FALSE                      1
-    ## 16 NA             TRUE                       4
+    ## 16 NA             TRUE                       1
     ## 17 ITS            TRUE                       1
     ## 18 trnL-F         FALSE                      1
 
@@ -227,8 +311,8 @@ Number of sequences per marker for Viridiplantae
     ## # Groups:   Marker [10]
     ##    Marker         locality_info Number_sequences
     ##    <chr>          <lgl>                    <int>
-    ##  1 matK           FALSE                     2011
-    ##  2 matK           TRUE                       409
+    ##  1 matK           FALSE                     2012
+    ##  2 matK           TRUE                       411
     ##  3 rbcLa          FALSE                     1623
     ##  4 rbcLa          TRUE                       223
     ##  5 ITS2           FALSE                      563
@@ -241,12 +325,12 @@ Number of sequences per marker for Viridiplantae
     ## 12 trnH-psbA      TRUE                       100
     ## 13 ycf1           FALSE                        2
     ## 14 ycf1           TRUE                       100
-    ## 15 NA             FALSE                        2
-    ## 16 NA             TRUE                         3
+    ## 15 NA             FALSE                        1
+    ## 16 NA             TRUE                         1
     ## 17 ITS            TRUE                         1
     ## 18 trnL-F         FALSE                        1
 
-![](4_EDA_bold_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-18-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-18-3.png)<!-- -->
+![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-3.png)<!-- -->
 
 Number of sequences per marker for Fungi
 
@@ -281,4 +365,4 @@ Number of sequences per marker for Fungi
     ## 11    28S         FALSE                0
     ## 12    28S          TRUE                1
 
-![](4_EDA_bold_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-20-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-20-3.png)<!-- -->
+![](4_EDA_bold_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-21-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-21-3.png)<!-- -->
