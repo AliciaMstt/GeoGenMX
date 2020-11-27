@@ -201,12 +201,24 @@ Sequences from kingdom Virus.
 
 ![](5_EDA_genbank_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
-Genetic markers available for all organisms: The following analysis were
-made after excluding all the records that did not have any type of
-genetic sequence available, and only included For the data retrieved
-from Genbank, some of the sequences retrieved span more than one genetic
-marker, this was annotated accordingly in the database and is reflected
-on the marker column.
+The phyla with the largest number of sequences were chosen from
+kingdoms: Metazoa, Viridiplantae and Fungi.
+
+Metazoa: 1)Chordata 2)Arthropoda
+
+Viridiplantae: 1)Magnoliophyta  
+2)Pinophyta
+
+Fungi: 1)Basidiomycota 2)Ascomycota
+
+Genetic markers available for all organisms:
+
+The following analysis were made after excluding all the records that
+did not have any type of genetic sequence available.
+
+For the data retrieved from Genbank, some of the sequences retrieved
+span more than one genetic marker, this was annotated accordingly in the
+database and is reflected on the marker column.
 
     ## # A tibble: 96 x 2
     ##    Marker                                      Number_sequences
