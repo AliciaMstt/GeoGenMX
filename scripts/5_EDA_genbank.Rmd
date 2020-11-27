@@ -371,15 +371,21 @@ write_csv(tax_info_sk_latlon,"../data/genbank/taxonomic_info_sk_latlon.csv")
 The phyla with the largest number of sequences were chosen from kingdoms: Metazoa, Viridiplantae and Fungi. 
 
 Metazoa:
+
 1)Chordata
+
 2)Arthropoda 
 
 Viridiplantae:
+
 1)Magnoliophyta   
+
 2)Pinophyta
 
 Fungi:
+
 1)Basidiomycota
+
 2)Ascomycota
 ```{r, echo=FALSE, error=FALSE, message= FALSE}
 #Filter to the phyla selected

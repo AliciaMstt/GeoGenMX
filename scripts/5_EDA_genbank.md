@@ -204,12 +204,23 @@ Sequences from kingdom Virus.
 The phyla with the largest number of sequences were chosen from
 kingdoms: Metazoa, Viridiplantae and Fungi.
 
-Metazoa: 1)Chordata 2)Arthropoda
+Metazoa:
 
-Viridiplantae: 1)Magnoliophyta  
+1)Chordata
+
+2)Arthropoda
+
+Viridiplantae:
+
+1)Magnoliophyta
+
 2)Pinophyta
 
-Fungi: 1)Basidiomycota 2)Ascomycota
+Fungi:
+
+1)Basidiomycota
+
+2)Ascomycota
 
 Genetic markers available for all organisms:
 
