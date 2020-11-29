@@ -54,3 +54,5 @@ Tax_processing folder: contains all intermediate files used in the process of do
 
 23) taxonomic_info_sk_latlon.csv: contains, the empty fields of data of species with latitude and longitude but incomplete taxonomic information (missing kingdom), the goal is to fill it out by hand little by little or complete it with BOLD information.
 
+24)genbank_ph_m: filters model organisms, selects only phyla of interest, filters sequences without annotation about marker/loci/genomic information (rows with NA in column definition), data with newly created column marker. 
+
