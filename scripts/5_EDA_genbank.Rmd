@@ -408,7 +408,7 @@ genbank_ph<-genbank_ph[-(which(!(is.na(match(genbank_ph$species_name, model_org)
 
 #Marker filtering
 
-#Since the biodiversity analysis will be done merging the data from genbank and from BOLD, the standardization and search of marker names is done taking the markers available in BOLD as reference. BOLD as a database is much more focused on taxonomic identification and biodiversity, therefore it has a much more curated list of genetic markers available, whereas genbank serves as a repository of all kinds of genetic sequences from all kinds of studies, the range of genetic markers available is huge, so in order to have consistency the markers from BOLD will serve as reference to look and select the markers from Genebank. 
+#Since the biodiversity analysis will be done merging the data from genbank and from BOLD, the standardization and search of marker names is done taking the markers available in BOLD as reference. BOLD as a database is much more focused on taxonomic identification and biodiversity, therefore it has a much more curated list of genetic markers available, whereas genbank serves as a repository of all kinds of genetic sequences from all kinds of studies, the range of genetic markers available is huge, so in order to have consistency the markers from BOLD will serve as reference to look and select the markers from Genebank, using R regular expressions. 
 
 
 
@@ -500,6 +500,7 @@ colnames(genbank_markers)<-c("Marker", "Number_sequences")
 
 
 other<-genbank_m%>%filter(marker=="other")%>% group_by(definition_1)%>% summarise(n())
+#write.csv(genbank_m, "../data/genbank/genbank_ph_m.csv")
 
 
 ```
@@ -524,37 +525,74 @@ metazoa_markers<-metazoa_markers%>% arrange(desc(Number_sequences))
 metazoa_latlon_markers<-genbank_m %>% filter(kingdom=="Metazoa") %>% group_by(marker, latlon_info) %>% summarise (n())
 colnames(metazoa_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
 metazoa_latlon_markers[which(is.na(metazoa_latlon_markers$Marker)),1]<-"NA"
+
+metazoa_latlon_ceros<-rbind(c("trnT,", TRUE, 0 ), c("5.8S,28S,ITS2,ITS,",TRUE, 0 ), c("5.8S,ITS2,ITS,", TRUE, 0), c("18S,ITS1,ITS,", TRUE, 0), c("5.8S,28S,ITS2,", TRUE, 0), c("18S,5.8S,28S,ITS2,ITS1,ITS,", TRUE, 0), c("26S,", TRUE, 0), c("trnL,", TRUE, 0), c("16S,trnL,", TRUE, 0), c("ITS2,", TRUE,0)) 
+metazoa_latlon_ceros<-as.data.frame(metazoa_latlon_ceros)
+colnames(metazoa_latlon_ceros)<-colnames(metazoa_latlon_markers)
+metazoa_latlon_ceros$Number_sequences<-as.numeric(metazoa_latlon_ceros$Number_sequences)
+metazoa_latlon_ceros$latlon_info<-as.logical(metazoa_latlon_ceros$latlon_info)
+metazoa_latlon_markers<-rbind(metazoa_latlon_markers, metazoa_latlon_ceros)
+
 metazoa_latlon_markers$total<-metazoa_markers[match(metazoa_latlon_markers$Marker, metazoa_markers$Marker),2]
-metazoa_latlon_markers<-metazoa_latlon_markers %>% arrange(desc(total))
+metazoa_latlon_markers<-metazoa_latlon_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
 
 metazoa_loc_markers<-genbank_m %>% filter(kingdom=="Metazoa") %>% group_by(marker, locality_info) %>% summarise (n())
 colnames (metazoa_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
 metazoa_loc_markers[which(is.na(metazoa_loc_markers$Marker)),1]<-"NA"
+
+metazoa_loc_ceros<-rbind(c("Rho,COI,", FALSE, 0))
+metazoa_loc_ceros<-as.data.frame(metazoa_loc_ceros)
+colnames(metazoa_loc_ceros)<-colnames(metazoa_loc_markers)
+metazoa_loc_ceros$Number_sequences<-as.numeric(metazoa_loc_ceros$Number_sequences)
+metazoa_loc_ceros$locality_info<-as.logical(metazoa_loc_ceros$locality_info)
+metazoa_loc_markers<-rbind(metazoa_loc_markers, metazoa_loc_ceros)
+
 metazoa_loc_markers$total<-metazoa_markers[match(metazoa_loc_markers$Marker, metazoa_markers$Marker),2]
-metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(total))
+metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
 
 ```
 
 Number of sequences per marker for Metazoa
 ```{r, echo=F, message=F, warning=F}
-metazoa_markers
-metazoa_latlon_markers[,1:3]
-metazoa_loc_markers[,1:3]
-met_marker_plot<-ggplot(data=metazoa_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+metazoa_markers<-metazoa_markers%>%arrange(desc(Marker))%>% arrange(desc(Number_sequences))
+metazoa_markers_top20<-metazoa_markers[1:20,]
+metazoa_markers_top20[1,2]<-metazoa_markers[1,2]+sum(metazoa_markers[21:54,2])
+metazoa_markers_top20
+
+metazoa_latlon_top20<-metazoa_latlon_markers[1:40,]
+metazoa_latlon_tail<-metazoa_latlon_markers[41:76,]
+metazoa_latlon_top20[1,4][[1]]<-metazoa_latlon_top20[1,4]+sum(metazoa_latlon_tail[,3])
+metazoa_latlon_top20[2,4][[1]]<-metazoa_latlon_top20[2,4]+sum(metazoa_latlon_tail[,3])
+metazoa_latlon_top20[1,3]<-metazoa_latlon_top20[1,3]+sum(metazoa_latlon_tail[which(metazoa_latlon_tail$latlon_info==F),3])
+metazoa_latlon_top20[2,3]<-metazoa_latlon_top20[2,3]+sum(metazoa_latlon_tail[which(metazoa_latlon_tail$latlon_info==T),3])
+metazoa_latlon_top20[,1:3]
+                                
+
+                                                                          
+metazoa_loc_top20<-metazoa_loc_markers[1:40,]
+metazoa_loc_tail<-metazoa_loc_markers[41:80,]
+metazoa_loc_top20[1,4][[1]]<-metazoa_loc_top20[1,4]+sum(metazoa_loc_tail[,3])
+metazoa_loc_top20[2,4][[1]]<-metazoa_loc_top20[2,4]+sum(metazoa_loc_tail[,3])
+metazoa_loc_top20[1,3]<-metazoa_loc_top20[1,3]+sum(metazoa_loc_tail[which(metazoa_loc_tail$locality_info==F),3])
+metazoa_loc_top20[2,3]<-metazoa_loc_top20[2,3]+sum(metazoa_loc_tail[which(metazoa_loc_tail$locality_info==T),3])
+metazoa_loc_top20[,1:3]
+
+
+met_marker_plot<-ggplot(data=metazoa_markers_top20, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
            geom_bar(stat="identity", fill="skyblue")+
   ggtitle("Number of sequences per marker for Metazoa") + xlab("Marker") + ylab("Number of sequences") +
   coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Chordata and Arthropoda. 
                          **Only the twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
 met_marker_plot
 
-metmarker_latlon_plot<-ggplot(metazoa_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+metmarker_latlon_plot<-ggplot(metazoa_latlon_top20, aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
  geom_bar(stat="identity", position = "dodge") + 
   scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Metazoa") +
   theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "*Only the twenty most abundant markers are included in this plot") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 metmarker_latlon_plot
 
 
-metmarker_loc_plot<-ggplot(metazoa_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Metazoa") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+metmarker_loc_plot<-ggplot(metazoa_loc_top20, aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Metazoa") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 metmarker_loc_plot
 
 
@@ -568,44 +606,90 @@ Number of sequences per marker for Viridiplantae
 viridiplantae_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker) %>% summarise(n())
 colnames(viridiplantae_markers)<-c("Marker", "Number_sequences")
 
-viridiplantae_markers<-viridiplantae_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Number_sequences))
+viridiplantae_markers<-viridiplantae_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Marker)) %>% arrange(desc(Number_sequences))
+
+viridiplantae_markers_top20<-viridiplantae_markers[1:20,]
 
 
 viridiplantae_latlon_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, latlon_info) %>% summarise (n())
 colnames(viridiplantae_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
 viridiplantae_latlon_markers[which(is.na(viridiplantae_latlon_markers$Marker)),1]<-"NA"
+
 viridiplantae_latlon_markers$total<-viridiplantae_markers[match(viridiplantae_latlon_markers$Marker, viridiplantae_markers$Marker),2]
-viridiplantae_latlon_markers<-viridiplantae_latlon_markers %>% arrange(desc(total))
+viridiplantae_latlon_markers<-viridiplantae_latlon_markers%>%arrange(desc(Marker))%>%arrange(desc(total))
+viridiplantae_latlon_markers<-viridiplantae_latlon_markers[,-4]
+
+viridiplantae_latlon_ceros<-rbind(c("trnL,trnT,", TRUE, 0), c("5.8S,ITS2,ITS1,", TRUE,0),c("trnT,trnD,", TRUE, 0), c("18S,5.8S,ITS2,ITS1,", TRUE, 0), c("trnY,", TRUE, 0), c("ITS2,ITS,", TRUE, 0), c("26S,18S,", TRUE,0))
+viridiplantae_latlon_ceros<-as.data.frame(viridiplantae_latlon_ceros)
+colnames(viridiplantae_latlon_ceros)<-colnames(viridiplantae_latlon_markers)	
+viridiplantae_latlon_ceros$Number_sequences<-as.numeric(viridiplantae_latlon_ceros$Number_sequences)
+viridiplantae_latlon_ceros$latlon_info<-as.logical(viridiplantae_latlon_ceros$latlon_info)
+viridiplantae_latlon_markers<-rbind(viridiplantae_latlon_markers,viridiplantae_latlon_ceros)
+viridiplantae_latlon_markers$total<-viridiplantae_markers[match(viridiplantae_latlon_markers$Marker, viridiplantae_markers$Marker),2]
+viridiplantae_latlon_markers<-viridiplantae_latlon_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
+
+
+
+
 
 viridiplantae_loc_markers<-genbank_m %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, locality_info) %>% summarise (n())
 colnames (viridiplantae_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
 viridiplantae_loc_markers[which(is.na(viridiplantae_loc_markers$Marker)),1]<-"NA"
 viridiplantae_loc_markers$total<-viridiplantae_markers[match(viridiplantae_loc_markers$Marker, viridiplantae_markers$Marker),2]
 viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(total))
+viridiplantae_loc_markers$total<-viridiplantae_markers[match(viridiplantae_loc_markers$Marker, viridiplantae_markers$Marker),2]
+viridiplantae_loc_markers<-viridiplantae_loc_markers%>%arrange(desc(Marker))%>%arrange(desc(total))
+
+
+
+
 
 
 ```
 
 
 ```{r, echo=F, message=F, warning=F}
-viridiplantae_markers
-viridiplantae_latlon_markers[,1:3]
-viridiplantae_loc_markers[,1:3]
-virp_marker_plot<-ggplot(data=viridiplantae_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+
+viridiplantae_markers_top20[1,2]<-viridiplantae_markers[1,2]+sum(viridiplantae_markers[21:54,2])
+viridiplantae_markers_top20
+
+viridiplantae_latlon_top20<-viridiplantae_latlon_markers[1:40,]
+viridiplantae_latlon_tail<-viridiplantae_latlon_markers[41:79,]
+viridiplantae_latlon_top20[1,4][[1]]<-viridiplantae_latlon_top20[1,4]+sum(viridiplantae_latlon_tail[,3])
+viridiplantae_latlon_top20[2,4][[1]]<-viridiplantae_latlon_top20[2,4]+sum(viridiplantae_latlon_tail[,3])
+viridiplantae_latlon_top20[1,3]<-viridiplantae_latlon_top20[1,3]+sum(viridiplantae_latlon_tail[which(viridiplantae_latlon_tail$latlon_info==F),3])
+viridiplantae_latlon_top20[2,3]<-viridiplantae_latlon_top20[2,3]+sum(viridiplantae_latlon_tail[which(viridiplantae_latlon_tail$latlon_info==T),3])
+viridiplantae_latlon_top20[,1:3]
+
+
+
+viridiplantae_loc_top20<-viridiplantae_loc_markers[1:40,]
+viridiplantae_loc_tail<-viridiplantae_loc_markers[41:94,]
+viridiplantae_loc_top20[1,4][[1]]<-viridiplantae_loc_top20[1,4]+sum(viridiplantae_loc_tail[,3])
+viridiplantae_loc_top20[2,4][[1]]<-viridiplantae_loc_top20[2,4]+sum(viridiplantae_loc_tail[,3])
+
+viridiplantae_loc_top20[1,3]<-viridiplantae_loc_top20[1,3]+sum(viridiplantae_loc_tail[which(viridiplantae_loc_tail$locality_info==F),3])
+
+viridiplantae_loc_top20[2,3]<-viridiplantae_loc_top20[2,3]+sum(viridiplantae_loc_tail[which(viridiplantae_loc_tail$locality_info==T),3])
+viridiplantae_loc_top20[,1:3]
+
+
+
+virp_marker_plot<-ggplot(data=viridiplantae_markers_top20, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
            geom_bar(stat="identity", fill="skyblue")+
   ggtitle("Number of sequences per marker for Viridiplantae") + xlab("Marker") + ylab("Number of sequences") +
   coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Pinophyta and Magnoliophyta.
                        **Only the top twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
 virp_marker_plot
 
-virpmarker_latlon_plot<-ggplot(viridiplantae_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+virpmarker_latlon_plot<-ggplot(viridiplantae_latlon_top20, aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
  geom_bar(stat="identity", position = "dodge") + 
   scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Viridiplantae") +
   theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "*Only the twenty most abundant markers are included in this plot.") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 virpmarker_latlon_plot
 
 
-virpmarker_loc_plot<-ggplot(viridiplantae_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Viridiplantae") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot.")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+virpmarker_loc_plot<-ggplot(viridiplantae_loc_top20, aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Viridiplantae") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the twenty most abundant markers are included in this plot.")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 virpmarker_loc_plot
 
 
@@ -619,11 +703,33 @@ colnames(fungi_markers)<-c("Marker", "Number_sequences")
 
 fungi_markers<-fungi_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Number_sequences))
 
+fungi_markers_top20<-fungi_markers[1:20,]
+
+
 
 fungi_latlon_markers<-genbank_m %>% filter(kingdom=="Fungi") %>% group_by(marker, latlon_info) %>% summarise (n())
 colnames(fungi_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
 fungi_latlon_markers$total<-fungi_markers[match(fungi_latlon_markers$Marker, fungi_markers$Marker),2]
 fungi_latlon_markers<-fungi_latlon_markers %>% arrange(desc(Marker)) %>% arrange(desc(total))
+fungi_latlon_markers<-fungi_latlon_markers[,-4]
+
+fungi_latlon_ceros<-rbind(c("18S,ITS1,ITS,", TRUE, 0),
+                          c("18S,28S,", TRUE,0),
+                          c("ITS1,", TRUE, 0), 
+                          c("5.8S,28S,ITS2,ITS1,", TRUE, 0), 
+                          c("CYTB,", TRUE, 0), 
+                          c("Rho,5.8S,28S,ITS2,ITS1,ITS,", TRUE, 0)
+                          )
+fungi_latlon_ceros<-as.data.frame(fungi_latlon_ceros)
+colnames(fungi_latlon_ceros)<-colnames(fungi_latlon_markers)	
+fungi_latlon_ceros$Number_sequences<-as.numeric(fungi_latlon_ceros$Number_sequences)
+fungi_latlon_ceros$latlon_info<-as.logical(fungi_latlon_ceros$latlon_info)
+fungi_latlon_markers<-rbind(fungi_latlon_markers,fungi_latlon_ceros)
+fungi_latlon_markers$total<-fungi_markers[match(fungi_latlon_markers$Marker, fungi_markers$Marker),2]
+fungi_latlon_markers<-fungi_latlon_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
+
+
+
 
 
 
@@ -632,28 +738,71 @@ colnames (fungi_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
 fungi_loc_markers$total<-fungi_markers[match(fungi_loc_markers$Marker, fungi_markers$Marker),2]
 fungi_loc_markers<-fungi_loc_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
 
+fungi_loc_markers<-fungi_loc_markers[,-4]
+
+
+
+
+fungi_loc_ceros<-rbind(c("ITS1,", FALSE, 0), 
+                          c("CYTB,", FALSE, 0) 
+                    )
+fungi_loc_ceros<-as.data.frame(fungi_loc_ceros)
+colnames(fungi_loc_ceros)<-colnames(fungi_loc_markers)	
+fungi_loc_ceros$Number_sequences<-as.numeric(fungi_loc_ceros$Number_sequences)
+fungi_loc_ceros$locality_info<-as.logical(fungi_loc_ceros$locality_info)
+fungi_loc_markers<-rbind(fungi_loc_markers,fungi_loc_ceros)
+fungi_loc_markers$total<-fungi_markers[match(fungi_loc_markers$Marker, fungi_markers$Marker),2]
+fungi_loc_markers<-fungi_loc_markers %>% arrange(desc(Marker))%>% arrange(desc(total))
+
+
 
 ```
 Number of sequences per marker for Fungi
 ```{r, echo=F, message=F, warning=F}
-fungi_markers
-fungi_latlon_markers[,1:3]
-fungi_loc_markers[,1:3]
-fungi_marker_plot<-ggplot(data=fungi_markers[1:20,], aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
+
+
+
+
+fungi_markers_top20[1,2]<-fungi_markers[1,2]+sum(fungi_markers[21:54,2])
+fungi_markers_top20
+
+fungi_latlon_top20<-fungi_latlon_markers[1:40,]
+fungi_latlon_tail<-fungi_latlon_markers[41:72,]
+fungi_latlon_top20[1,4][[1]]<-fungi_latlon_top20[1,4]+sum(fungi_latlon_tail[,3])
+fungi_latlon_top20[2,4][[1]]<-fungi_latlon_top20[2,4]+sum(fungi_latlon_tail[,3])
+fungi_latlon_top20[1,3]<-fungi_latlon_top20[1,3]+sum(fungi_latlon_tail[which(fungi_latlon_tail$latlon_info==F),3])
+fungi_latlon_top20[2,3]<-fungi_latlon_top20[2,3]+sum(fungi_latlon_tail[which(fungi_latlon_tail$latlon_info==T),3])
+fungi_latlon_top20[,1:3]
+
+
+
+fungi_loc_top20<-fungi_loc_markers[1:40,]
+fungi_loc_tail<-fungi_loc_markers[41:94,]
+fungi_loc_top20[1,4][[1]]<-fungi_loc_top20[1,4]+sum(fungi_loc_tail[,3])
+fungi_loc_top20[2,4][[1]]<-fungi_loc_top20[2,4]+sum(fungi_loc_tail[,3])
+
+fungi_loc_top20[1,3]<-fungi_loc_top20[1,3]+sum(fungi_loc_tail[which(fungi_loc_tail$locality_info==F),3])
+
+fungi_loc_top20[2,3]<-fungi_loc_top20[2,3]+sum(fungi_loc_tail[which(fungi_loc_tail$locality_info==T),3])
+fungi_loc_top20[,1:3]
+
+
+
+fungi_marker_plot<-ggplot(data=fungi_markers_top20, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
            geom_bar(stat="identity", fill="skyblue")+
   ggtitle("Number of sequences per marker for Fungi") + xlab("Marker") + ylab("Number of sequences") +
   coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Ascomycota and Basidiomycota.
                       **Only the twenty most abundant markers are included in this plot.") + theme(plot.caption = element_text(hjust = 0.5))
 fungi_marker_plot
 
-fungimarker_latlon_plot<-ggplot(fungi_latlon_markers[1:40,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+fungimarker_latlon_plot<-ggplot(fungi_latlon_top20, aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
  geom_bar(stat="identity", position = "dodge") + 
   scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Fungi") +
   theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "Only the twenty most abundant markers are included in this plot.") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 fungimarker_latlon_plot
 
 
-fungimarker_loc_plot<-ggplot(fungi_loc_markers[1:40,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Fungi") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+fungimarker_loc_plot<-ggplot(fungi_loc_top20, aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Fungi") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "Only the twenty most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 fungimarker_loc_plot
 
 
