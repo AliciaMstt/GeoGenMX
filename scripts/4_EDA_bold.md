@@ -206,129 +206,166 @@ Genetic markers available for all organisms:
 
 Number of sequences per marker for Metazoa
 
-    ## # A tibble: 32 x 3
-    ## # Groups:   Marker [21]
-    ##    Marker    latlon_info Number_sequences
-    ##    <chr>     <lgl>                  <int>
-    ##  1 COI-5P    FALSE                   7634
-    ##  2 COI-5P    TRUE                   62547
-    ##  3 NA        FALSE                    328
-    ##  4 NA        TRUE                    4546
-    ##  5 28S-D2    FALSE                      4
-    ##  6 28S-D2    TRUE                     322
-    ##  7 CYTB      FALSE                     14
-    ##  8 CYTB      TRUE                     139
-    ##  9 28S-D2-D3 FALSE                      7
-    ## 10 28S-D2-D3 TRUE                     132
-    ## 11 COI-3P    FALSE                     92
-    ## 12 COI-3P    TRUE                       2
-    ## 13 ND2       TRUE                      42
-    ## 14 H3        FALSE                      8
-    ## 15 H3        TRUE                      29
-    ## 16 12S       TRUE                      31
-    ## 17 Rho       FALSE                     19
-    ## 18 28S       FALSE                      2
-    ## 19 28S       TRUE                      12
-    ## 20 DBY-EX7-8 FALSE                      1
-    ## 21 DBY-EX7-8 TRUE                      13
-    ## 22 18S       FALSE                      6
-    ## 23 18S       TRUE                       6
-    ## 24 atp6      FALSE                      6
-    ## 25 16S       FALSE                      1
-    ## 26 16S       TRUE                       4
-    ## 27 RAG2      TRUE                       5
-    ## 28 NGFB      TRUE                       3
-    ## 29 R35       TRUE                       3
-    ## 30 COII      FALSE                      2
-    ## 31 COXIII    FALSE                      2
-    ## 32 EF1-alpha TRUE                       1
+    ## # A tibble: 21 x 2
+    ##    Marker    Number_sequences
+    ##    <chr>                <int>
+    ##  1 COI-5P               70181
+    ##  2 NA                    4874
+    ##  3 28S-D2                 326
+    ##  4 CYTB                   153
+    ##  5 28S-D2-D3              139
+    ##  6 COI-3P                  94
+    ##  7 ND2                     42
+    ##  8 H3                      37
+    ##  9 12S                     31
+    ## 10 Rho                     19
+    ## 11 28S                     14
+    ## 12 DBY-EX7-8               14
+    ## 13 18S                     12
+    ## 14 atp6                     6
+    ## 15 16S                      5
+    ## 16 RAG2                     5
+    ## 17 NGFB                     3
+    ## 18 R35                      3
+    ## 19 COII                     2
+    ## 20 COXIII                   2
+    ## 21 EF1-alpha                1
 
-    ## # A tibble: 32 x 3
-    ## # Groups:   Marker [21]
-    ##    Marker    locality_info Number_sequences
-    ##    <chr>     <lgl>                    <int>
-    ##  1 COI-5P    FALSE                    20037
-    ##  2 COI-5P    TRUE                     50144
-    ##  3 NA        FALSE                       81
-    ##  4 NA        TRUE                      4793
-    ##  5 28S-D2    FALSE                        4
-    ##  6 28S-D2    TRUE                       322
-    ##  7 CYTB      FALSE                        8
-    ##  8 CYTB      TRUE                       145
-    ##  9 28S-D2-D3 TRUE                       139
-    ## 10 COI-3P    FALSE                        4
-    ## 11 COI-3P    TRUE                        90
-    ## 12 ND2       FALSE                       11
-    ## 13 ND2       TRUE                        31
-    ## 14 H3        TRUE                        37
-    ## 15 12S       FALSE                       31
-    ## 16 Rho       FALSE                        1
-    ## 17 Rho       TRUE                        18
-    ## 18 28S       FALSE                        5
-    ## 19 28S       TRUE                         9
-    ## 20 DBY-EX7-8 TRUE                        14
-    ## 21 18S       FALSE                        9
-    ## 22 18S       TRUE                         3
-    ## 23 atp6      FALSE                        2
-    ## 24 atp6      TRUE                         4
-    ## 25 16S       FALSE                        5
-    ## 26 RAG2      FALSE                        2
-    ## 27 RAG2      TRUE                         3
-    ## 28 NGFB      TRUE                         3
-    ## 29 R35       TRUE                         3
-    ## 30 COII      FALSE                        2
-    ## 31 COXIII    FALSE                        2
-    ## 32 EF1-alpha TRUE                         1
+    ##       Marker latlon_info Number_sequences
+    ## 1     COI-5P        TRUE            62547
+    ## 2     COI-5P       FALSE             7634
+    ## 3         NA        TRUE             4546
+    ## 4         NA       FALSE              328
+    ## 5     28S-D2        TRUE              322
+    ## 6     28S-D2       FALSE                4
+    ## 7       CYTB        TRUE              139
+    ## 8       CYTB       FALSE               14
+    ## 9  28S-D2-D3        TRUE              132
+    ## 10 28S-D2-D3       FALSE                7
+    ## 11    COI-3P        TRUE                2
+    ## 12    COI-3P       FALSE               92
+    ## 13       ND2        TRUE               42
+    ## 14       ND2       FALSE                0
+    ## 15        H3        TRUE               29
+    ## 16        H3       FALSE                8
+    ## 17       12S        TRUE               31
+    ## 18       12S       FALSE                0
+    ## 19       Rho        TRUE                0
+    ## 20       Rho       FALSE               19
+    ## 21 DBY-EX7-8        TRUE               13
+    ## 22 DBY-EX7-8       FALSE                1
+    ## 23       28S        TRUE               12
+    ## 24       28S       FALSE                2
+    ## 25       18S        TRUE                6
+    ## 26       18S       FALSE                6
+    ## 27      atp6        TRUE                0
+    ## 28      atp6       FALSE                6
+    ## 29      RAG2        TRUE                5
+    ## 30      RAG2       FALSE                0
+    ## 31       16S        TRUE                4
+    ## 32       16S       FALSE                1
+    ## 33       R35        TRUE                3
+    ## 34       R35       FALSE                0
+    ## 35      NGFB        TRUE                3
+    ## 36      NGFB       FALSE                0
+    ## 37    COXIII        TRUE                0
+    ## 38    COXIII       FALSE                2
+    ## 39      COII        TRUE                0
+    ## 40      COII       FALSE                2
+    ## 41 EF1-alpha        TRUE                1
+    ## 42 EF1-alpha       FALSE                0
+
+    ##       Marker locality_info Number_sequences
+    ## 1     COI-5P          TRUE            50144
+    ## 2     COI-5P         FALSE            20037
+    ## 3         NA          TRUE             4793
+    ## 4         NA         FALSE               81
+    ## 5     28S-D2          TRUE              322
+    ## 6     28S-D2         FALSE                4
+    ## 7       CYTB          TRUE              145
+    ## 8       CYTB         FALSE                8
+    ## 9  28S-D2-D3          TRUE              139
+    ## 10 28S-D2-D3         FALSE                0
+    ## 11    COI-3P          TRUE               90
+    ## 12    COI-3P         FALSE                4
+    ## 13       ND2          TRUE               31
+    ## 14       ND2         FALSE               11
+    ## 15        H3          TRUE               37
+    ## 16        H3         FALSE                0
+    ## 17       12S          TRUE                0
+    ## 18       12S         FALSE               31
+    ## 19       Rho          TRUE               18
+    ## 20       Rho         FALSE                1
+    ## 21 DBY-EX7-8          TRUE               14
+    ## 22 DBY-EX7-8         FALSE                0
+    ## 23       28S          TRUE                9
+    ## 24       28S         FALSE                5
+    ## 25       18S          TRUE                3
+    ## 26       18S         FALSE                9
+    ## 27      atp6          TRUE                4
+    ## 28      atp6         FALSE                2
+    ## 29      RAG2          TRUE                3
+    ## 30      RAG2         FALSE                2
+    ## 31       16S          TRUE                0
+    ## 32       16S         FALSE                5
+    ## 33       R35          TRUE                3
+    ## 34       R35         FALSE                0
+    ## 35      NGFB          TRUE                3
+    ## 36      NGFB         FALSE                0
+    ## 37    COXIII          TRUE                0
+    ## 38    COXIII         FALSE                2
+    ## 39      COII          TRUE                0
+    ## 40      COII         FALSE                2
+    ## 41 EF1-alpha          TRUE                1
+    ## 42 EF1-alpha         FALSE                0
 
 ![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-17-3.png)<!-- -->
 
 Number of sequences per marker for Viridiplantae
 
-    ## # A tibble: 18 x 3
-    ## # Groups:   Marker [10]
-    ##    Marker         latlon_info Number_sequences
-    ##    <chr>          <lgl>                  <int>
-    ##  1 matK           FALSE                   1125
-    ##  2 matK           TRUE                    1298
-    ##  3 rbcLa          FALSE                    142
-    ##  4 rbcLa          TRUE                    1704
-    ##  5 ITS2           FALSE                   1675
-    ##  6 ITS2           TRUE                     125
-    ##  7 rbcL           FALSE                    200
-    ##  8 rbcL           TRUE                     126
-    ##  9 trnD-trnY-trnE FALSE                      9
-    ## 10 trnD-trnY-trnE TRUE                      93
-    ## 11 trnH-psbA      FALSE                      9
-    ## 12 trnH-psbA      TRUE                      93
-    ## 13 ycf1           FALSE                      9
-    ## 14 ycf1           TRUE                      93
-    ## 15 NA             FALSE                      1
-    ## 16 NA             TRUE                       1
-    ## 17 ITS            TRUE                       1
-    ## 18 trnL-F         FALSE                      1
+    ##            Marker latlon_info Number_sequences
+    ## 1            matK        TRUE             1298
+    ## 2            matK       FALSE             1125
+    ## 3           rbcLa        TRUE             1704
+    ## 4           rbcLa       FALSE              142
+    ## 5            ITS2        TRUE              125
+    ## 6            ITS2       FALSE             1675
+    ## 7            rbcL        TRUE              126
+    ## 8            rbcL       FALSE              200
+    ## 9            ycf1        TRUE               93
+    ## 10           ycf1       FALSE                9
+    ## 11      trnH-psbA        TRUE               93
+    ## 12      trnH-psbA       FALSE                9
+    ## 13 trnD-trnY-trnE        TRUE               93
+    ## 14 trnD-trnY-trnE       FALSE                9
+    ## 15             NA        TRUE                1
+    ## 16             NA       FALSE                1
+    ## 17         trnL-F        TRUE                0
+    ## 18         trnL-F       FALSE                1
+    ## 19            ITS        TRUE                1
+    ## 20            ITS       FALSE                0
 
-    ## # A tibble: 18 x 3
-    ## # Groups:   Marker [10]
-    ##    Marker         locality_info Number_sequences
-    ##    <chr>          <lgl>                    <int>
-    ##  1 matK           FALSE                     2012
-    ##  2 matK           TRUE                       411
-    ##  3 rbcLa          FALSE                     1623
-    ##  4 rbcLa          TRUE                       223
-    ##  5 ITS2           FALSE                      563
-    ##  6 ITS2           TRUE                      1237
-    ##  7 rbcL           FALSE                      173
-    ##  8 rbcL           TRUE                       153
-    ##  9 trnD-trnY-trnE FALSE                        2
-    ## 10 trnD-trnY-trnE TRUE                       100
-    ## 11 trnH-psbA      FALSE                        2
-    ## 12 trnH-psbA      TRUE                       100
-    ## 13 ycf1           FALSE                        2
-    ## 14 ycf1           TRUE                       100
-    ## 15 NA             FALSE                        1
-    ## 16 NA             TRUE                         1
-    ## 17 ITS            TRUE                         1
-    ## 18 trnL-F         FALSE                        1
+    ##            Marker locality_info Number_sequences
+    ## 1            matK          TRUE              411
+    ## 2            matK         FALSE             2012
+    ## 3           rbcLa          TRUE              223
+    ## 4           rbcLa         FALSE             1623
+    ## 5            ITS2          TRUE             1237
+    ## 6            ITS2         FALSE              563
+    ## 7            rbcL          TRUE              153
+    ## 8            rbcL         FALSE              173
+    ## 9            ycf1          TRUE              100
+    ## 10           ycf1         FALSE                2
+    ## 11      trnH-psbA          TRUE              100
+    ## 12      trnH-psbA         FALSE                2
+    ## 13 trnD-trnY-trnE          TRUE              100
+    ## 14 trnD-trnY-trnE         FALSE                2
+    ## 15             NA          TRUE                1
+    ## 16             NA         FALSE                1
+    ## 17         trnL-F          TRUE                0
+    ## 18         trnL-F         FALSE                1
+    ## 19            ITS          TRUE                1
+    ## 20            ITS         FALSE                0
 
 ![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-3.png)<!-- -->
 

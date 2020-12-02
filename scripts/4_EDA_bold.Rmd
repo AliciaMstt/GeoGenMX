@@ -312,22 +312,55 @@ write.csv(bold_ph, "../data/bold/bold_ph.csv")
 
 metazoa_markers<-bold_ph %>% filter(kingdom=="Metazoa") %>% group_by(marker) %>% summarise(n())
 colnames(metazoa_markers)<-c("Marker", "Number_sequences")
-
 metazoa_markers<-metazoa_markers%>% mutate(Marker=replace_na(Marker, "NA"))  %>% arrange(desc(Number_sequences))
 
 
 metazoa_latlon_markers<-bold_ph %>% filter(kingdom=="Metazoa") %>% group_by(marker, latlon_info) %>% summarise (n())
 colnames(metazoa_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
 metazoa_latlon_markers[which(is.na(metazoa_latlon_markers$Marker)),1]<-"NA"
+
+metazoa_latlon_ceros<-rbind(c("ND2", FALSE, 0),
+                            c("12S", FALSE, 0),
+                            c("Rho", TRUE, 0),
+                            c("atp6", TRUE, 0),
+                            c("RAG2", FALSE, 0),
+                            c("NGFB", FALSE, 0),
+                            c("R35", FALSE,0),
+                            c("COII", TRUE,0 ),
+                            c("COXIII", TRUE, 0),
+                            c("EF1-alpha", FALSE,0))
+metazoa_latlon_ceros<-as.data.frame(metazoa_latlon_ceros)
+colnames(metazoa_latlon_ceros)<-colnames(metazoa_latlon_markers)
+metazoa_latlon_ceros$latlon_info<-as.logical(metazoa_latlon_ceros$latlon_info)
+metazoa_latlon_ceros$Number_sequences<-as.numeric(metazoa_latlon_ceros$Number_sequences)
+metazoa_latlon_markers<-rbind(metazoa_latlon_ceros,metazoa_latlon_markers)
+
 metazoa_latlon_markers$total<-metazoa_markers[match(metazoa_latlon_markers$Marker, metazoa_markers$Marker),2]
-metazoa_latlon_markers<-metazoa_latlon_markers %>% arrange(desc(total))
+metazoa_latlon_markers<-metazoa_latlon_markers %>% arrange(desc(Marker)) %>% arrange(desc(latlon_info))%>%arrange(desc(Marker)) %>% arrange(desc(total))
 
 metazoa_loc_markers<-bold_ph %>% filter(kingdom=="Metazoa") %>% group_by(marker, locality_info) %>% summarise (n())
 colnames (metazoa_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
 metazoa_loc_markers[which(is.na(metazoa_loc_markers$Marker)),1]<-"NA"
-metazoa_loc_markers$total<-metazoa_markers[match(metazoa_loc_markers$Marker, metazoa_markers$Marker),2]
-metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(total))
 
+
+metazoa_loc_ceros<-rbind(c("28S-D2-D3", FALSE, 0),
+                            c("H3", FALSE, 0),
+                            c("12S", TRUE, 0),
+                            c("DBY-EX7-8", FALSE, 0),
+                            c("16S", TRUE, 0),
+                            c("NGFB", FALSE, 0),
+                            c("R35", FALSE,0),
+                            c("COII", TRUE,0 ),
+                            c("COXIII", TRUE, 0),
+                            c("EF1-alpha", FALSE,0))
+metazoa_loc_ceros<-as.data.frame(metazoa_loc_ceros)
+colnames(metazoa_loc_ceros)<-colnames(metazoa_loc_markers)
+metazoa_loc_ceros$locality_info<-as.logical(metazoa_loc_ceros$locality_info)
+metazoa_loc_ceros$Number_sequences<-as.numeric(metazoa_loc_ceros$Number_sequences)
+metazoa_loc_markers<-rbind(metazoa_loc_ceros,metazoa_loc_markers)
+
+metazoa_loc_markers$total<-metazoa_markers[match(metazoa_loc_markers$Marker, metazoa_markers$Marker),2]
+metazoa_loc_markers<-metazoa_loc_markers %>% arrange(desc(Marker)) %>% arrange(desc(locality_info))%>%arrange(desc(Marker)) %>% arrange(desc(total))
 
 ```
 
@@ -338,7 +371,7 @@ bold_ph%>%group_by(marker)%>% summarise(n())%>%arrange(desc(`n()`))
 ```
 Number of sequences per marker for Metazoa
 ```{r, echo=F, message=F, warning=F}
-
+metazoa_markers
 metazoa_latlon_markers[,1:3]
 metazoa_loc_markers[,1:3]
 met_marker_plot<-ggplot(data=metazoa_markers, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
@@ -347,14 +380,14 @@ met_marker_plot<-ggplot(data=metazoa_markers, aes(x=reorder(Marker, Number_seque
   coord_flip() + theme(legend.position = "none") + theme_bw() +theme(plot.title=element_text(hjust = .5)) + labs (caption="*Phyla included: Chordata and Arthropoda") + theme(plot.caption = element_text(hjust = 0.5))
 met_marker_plot
 
-metmarker_latlon_plot<-ggplot(metazoa_latlon_markers[1:20,], aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
+metmarker_latlon_plot<-ggplot(metazoa_latlon_markers, aes(factor(reorder(Marker,total[[1]])), Number_sequences, fill=latlon_info)) +
  geom_bar(stat="identity", position = "dodge") + 
   scale_fill_brewer(palette ="Pastel1") + ggtitle("Data with coordinates per marker for Metazoa") +
-  theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "*Only the ten most abundant markers are included in this plot") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+  theme(axis.text.x = element_text(angle = 90)) + xlab("Marker") + ylab ("Number of sequences") + labs (fill="Information on coordinates", caption = "") +coord_flip()+ theme_bw()+theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 metmarker_latlon_plot
 
 
-metmarker_loc_plot<-ggplot(metazoa_loc_markers[1:20,], aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Metazoa") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "*Only the ten most abundant markers are included in this plot")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
+metmarker_loc_plot<-ggplot(metazoa_loc_markers, aes(factor(reorder(Marker, total[[1]])), Number_sequences, fill=locality_info)) + geom_bar(stat="identity", position = "dodge") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Data with locality information per marker for Metazoa") + theme(axis.text.x = element_text(angle = 90))+ xlab("Marker") + ylab ("Number of sequences")  + labs(fill="Information on locality", caption = "")+coord_flip()+ theme_bw()+ theme(plot.title = element_text(hjust = 0.5)) + theme(plot.caption = element_text(hjust = 0.5))
 metmarker_loc_plot
 
 
@@ -372,14 +405,30 @@ viridiplantae_markers<-viridiplantae_markers%>% mutate(Marker=replace_na(Marker,
 viridiplantae_latlon_markers<-bold_ph %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, latlon_info) %>% summarise (n())
 colnames(viridiplantae_latlon_markers)<-c("Marker", "latlon_info", "Number_sequences")
 viridiplantae_latlon_markers[which(is.na(viridiplantae_latlon_markers$Marker)),1]<-"NA"
+viridiplantae_latlon_ceros<-rbind(c("ITS", FALSE, 0),
+                             c("trnL-F", TRUE,0))
+viridiplantae_latlon_ceros<-as.data.frame(viridiplantae_latlon_ceros)
+colnames(viridiplantae_latlon_ceros)<-colnames(viridiplantae_latlon_markers)
+viridiplantae_latlon_ceros$latlon_info<-as.logical(viridiplantae_latlon_ceros$latlon_info)
+viridiplantae_latlon_ceros$Number_sequences<-as.numeric(viridiplantae_latlon_ceros$Number_sequences)
+viridiplantae_latlon_markers<-rbind(viridiplantae_latlon_ceros,viridiplantae_latlon_markers)
 viridiplantae_latlon_markers$total<-viridiplantae_markers[match(viridiplantae_latlon_markers$Marker, viridiplantae_markers$Marker),2]
-viridiplantae_latlon_markers<-viridiplantae_latlon_markers %>% arrange(desc(total))
+viridiplantae_latlon_markers<-viridiplantae_latlon_markers %>% arrange(desc(Marker)) %>% arrange(desc(latlon_info))%>%arrange(desc(Marker)) %>% arrange(desc(total))
+
 
 viridiplantae_loc_markers<-bold_ph %>% filter(kingdom=="Viridiplantae") %>% group_by(marker, locality_info) %>% summarise (n())
 colnames (viridiplantae_loc_markers)<-c("Marker", "locality_info", "Number_sequences")
 viridiplantae_loc_markers[which(is.na(viridiplantae_loc_markers$Marker)),1]<-"NA"
+viridiplantae_loc_ceros<-rbind(c("ITS", FALSE, 0),
+                        c("trnL-F", TRUE,0))
+viridiplantae_loc_ceros<-as.data.frame(viridiplantae_loc_ceros)
+colnames(viridiplantae_loc_ceros)<-colnames(viridiplantae_loc_markers)
+viridiplantae_loc_ceros$locality_info<-as.logical(viridiplantae_loc_ceros$locality_info)
+viridiplantae_loc_ceros$Number_sequences<-as.numeric(viridiplantae_loc_ceros$Number_sequences)
+viridiplantae_loc_markers<-rbind(viridiplantae_loc_ceros,viridiplantae_loc_markers)
 viridiplantae_loc_markers$total<-viridiplantae_markers[match(viridiplantae_loc_markers$Marker, viridiplantae_markers$Marker),2]
-viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(total))
+viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(Marker)) %>% arrange(desc(locality_info))%>%arrange(desc(Marker)) %>% arrange(desc(total))
+
 
 
 ```
