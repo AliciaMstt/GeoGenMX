@@ -763,7 +763,7 @@ Number of sequences per marker for Fungi
 
 
 
-fungi_markers_top20[1,2]<-fungi_markers[1,2]+sum(fungi_markers[21:54,2])
+fungi_markers_top20[1,2]<-fungi_markers[1,2]+sum(fungi_markers[21:44,2])
 fungi_markers_top20
 
 fungi_latlon_top20<-fungi_latlon_markers[1:40,]

@@ -572,7 +572,7 @@ Number of sequences per marker for Fungi
     ## # A tibble: 20 x 2
     ##    Marker                      Number_sequences
     ##    <chr>                                  <int>
-    ##  1 other                                     NA
+    ##  1 other                                  19328
     ##  2 5.8S,ITS2,ITS1,ITS,                     2373
     ##  3 18S,5.8S,28S,ITS2,ITS1,ITS,             2257
     ##  4 5.8S,28S,ITS2,ITS1,ITS,                  984
