@@ -434,7 +434,7 @@ viridiplantae_loc_markers<-viridiplantae_loc_markers %>% arrange(desc(Marker)) %
 ```
 
 ```{r, echo=F, message=F, warning=F}
-
+viridiplantae_markers
 viridiplantae_latlon_markers[,1:3]
 viridiplantae_loc_markers[,1:3]
 virp_marker_plot<-ggplot(data=viridiplantae_markers, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+
@@ -496,7 +496,7 @@ fungi_loc_markers<-fungi_loc_markers %>% arrange(desc(Marker))%>% arrange(desc(t
 ```
 Number of sequences per marker for Fungi
 ```{r, echo=F, message=F, warning=F}
-
+fungi_markers
 fungi_latlon_markers[,1:3]
 fungi_loc_markers[,1:3]
 fungi_marker_plot<-ggplot(data=fungi_markers, aes(x=reorder(Marker, Number_sequences), y=Number_sequences))+

@@ -323,6 +323,20 @@ Number of sequences per marker for Metazoa
 
 Number of sequences per marker for Viridiplantae
 
+    ## # A tibble: 10 x 2
+    ##    Marker         Number_sequences
+    ##    <chr>                     <int>
+    ##  1 matK                       2423
+    ##  2 rbcLa                      1846
+    ##  3 ITS2                       1800
+    ##  4 rbcL                        326
+    ##  5 trnD-trnY-trnE              102
+    ##  6 trnH-psbA                   102
+    ##  7 ycf1                        102
+    ##  8 NA                            2
+    ##  9 ITS                           1
+    ## 10 trnL-F                        1
+
     ##            Marker latlon_info Number_sequences
     ## 1            matK        TRUE             1298
     ## 2            matK       FALSE             1125
@@ -370,6 +384,16 @@ Number of sequences per marker for Viridiplantae
 ![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-2.png)<!-- -->![](4_EDA_bold_files/figure-gfm/unnamed-chunk-19-3.png)<!-- -->
 
 Number of sequences per marker for Fungi
+
+    ## # A tibble: 6 x 2
+    ##   Marker Number_sequences
+    ##   <chr>             <int>
+    ## 1 ITS                1418
+    ## 2 5.8S                 59
+    ## 3 ITS1                 59
+    ## 4 ITS2                 59
+    ## 5 28S                   1
+    ## 6 NA                    1
 
     ## # A tibble: 12 x 3
     ## # Groups:   Marker [6]
