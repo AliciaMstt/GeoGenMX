@@ -1,0 +1,26 @@
+---
+title: "filter data"
+output: html_document
+---
+
+```{r, echo=F, warning=F, message=F, cache=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(magrittr)
+
+
+
+####investigar si coi y cox son lo mismo y ponerlo en metodos y cytb 
+####fungi its1 its its2
+
+
+#readme inicio poner mas info estructura repo e info proyecto 
+#readme scripts mas bonito y con hipervinculos
+#cambiar instrucciones por codigo
+
+###rbcl, matk, trn
+
+
+
+```

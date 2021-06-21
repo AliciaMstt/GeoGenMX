@@ -1,0 +1,34 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyr)
+library(magrittr)
+library(dplyr)
+library(readr)
+
+
+
+
+bold<-read.csv("../data/bold/bold_valid.csv")
+#SEE NUMBER OF SEQUENCES PER SPECIES
+bold_valid_seqs<-bold%>%group_by(species_name)%>%summarise(n())
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(ggmap)
+library(sp)
+library(raster)
+library(rgdal)
+raster1<-raster("../hrsl_mex.tif")
+raster2<-raster("../shdrlfi020l.tif")
+plot(raster2)
+points(bold$lon, bold$lat)
+```
+
+

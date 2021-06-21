@@ -10,6 +10,9 @@ library(dplyr)
 library(readr)
 
 bold<-read.csv( "../data/bold/bold_ph.csv")
+bold_geografos_1valid_cons<-read.csv("../data/bold/geografos/XY_BOLD_Etapas_Validacion_ZonEcoTerMar_CONS.csv")
+bold_geografos_2valid<-read.csv("../data/bold/geografos/Bold_VAL_ZonEcoTerMar_INCONS_Trab_Val__Final_CORR_INCONS.csv")
+
 
 ```
 
@@ -23,9 +26,7 @@ bold<-read.csv( "../data/bold/bold_ph.csv")
 #2) process id: BOLD Process IDs are unique codes automatically generated for each new record added to a project. They serve to connect specimen information, such as taxonomy, collection data and images, to the DNA barcode sequence for that specimen. BOLD Process IDs consist of a standard format including the project code and sequential numbers, followed by the year the record was added to the database. For example, the first record uploaded to project PROJ in 2012 would be assigned BOLD Process ID PROJ001-12 . This format ensures BOLD Process IDs are always unique in the system, as well as identifying the year the record was uploaded and the original project it was uploaded to.
 #54)sequence id:sequence identifier, combined with process id yields a unique identifier for all records in database
 #55) markercode: information on the genetic marker of the deposited sequence
-#78)marker: column generated from merging information from 55)markercode and 65)markercodes
 #9) bin uri: bin identifier. The Barcode Index Number System is an online framework that clusters barcode sequences algorithmically, generating a web page for each cluster. Since clusters show high concordance with species, this system can be used to verify species identifications as well as document diversity when taxonomic information is lacking. 
-#31) notes: Notes about the primer.
 #32) lat: The geographic latitude (in decimal degrees) of the geographic center of a location.
 #33)lon: The geographic longitude (in decimal degrees) of the geographic center of a location.
 
@@ -60,9 +61,8 @@ bold<-read.csv( "../data/bold/bold_ph.csv")
 #75) Tax_id: unique species tax_id taken from genbank
 #76)latlon_info: boolean whether or not information for latitude or longitude exists
 #77)locality_info: boolean whether or not information to pinpoint locality exists
-#78)marker: combined information on loci or genetic marker, merged from markercode and markercodes
-
-bold<-bold[,c(2,54,55,78,9,31:33,36,37,40:44,56,57,63:78)]
+#78)marker: column generated from merging information from 55)markercode and 65)markercodes
+bold<-bold[,c(2,54,55,9,32:33,36,37,40:44,56,57,63:78)]
 
 ```
 
@@ -139,3 +139,26 @@ de validación y/o georreferenciación
 
 
 Les comento que la información corregida de la base de datos, se encuentra en los campos "Corr" de la tabla de (access) que envío, misma que las puedes encontrar en la carpeta con el nombre Entrega_Final_Loc_Bold_Incons, en la ruta: J:\USUARIOS\CONABIO\CARB\AMastretta\DIVERSIDAD GENÉTICA_BOLD & GENBANK\ENTREGA_BOLD_Val_ZonEcoTerMar_06Dic2018\Entrega_Final_Loc_Bold_Incons.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+bold_geografos_2valid<-bold_geografos_2valid[which(!is.na(bold_geografos_2valid$CORR_LATITUD)),]
+bold_geografos_2validcorr<-bold_geografos_2valid[,1:19]
+bold_geografos_2validcorr$province_s<-bold_geografos_2valid$CORR_ESTADO
+bold_geografos_2validcorr$region<-bold_geografos_2valid$CORR_MUNICIPIO
+bold_geografos_2validcorr$exactsite<-bold_geografos_2valid$CORR_LOCALIDAD
+bold_geografos_2validcorr$lat<-bold_geografos_2valid$CORR_LATITUD
+bold_geografos_2validcorr$lon<-bold_geografos_2valid$CORR_LONGITUD
+bold_geografos_2validcorr$elev<-bold_geografos_2valid$CORR_ALTITUD
+
+bold_corr_missingcols<-data.frame(matrix(nrow = 259, ncol = 14))
+colnames(bold_corr_missingcols)<-colnames(bold_geografos_1valid_cons[,20:33])
+bold_corr<-cbind(bold_geografos_2validcorr,bold_corr_missingcols)
+
+bold_geo_all<-rbind(bold_geografos_1valid_cons, bold_corr)
+
+bold_valid_final<-bold[match(bold_geo_all$sequenceID, bold$sequenceID),c(1,14:31)]
+bold_valid_final<-cbind(bold_valid_final, bold_geo_all[,5:29])
+write.csv(bold_valid_final, "../data/bold/bold_valid.csv")
+
+``` 
